@@ -13,9 +13,16 @@ import { Slider } from "@/components/ui/slider"
 import { toast } from "@/components/ui/use-toast"
 import { ToastAction } from "@/components/ui/toast"
 import { Toaster } from "@/components/ui/toaster"
+import { useThemeColor } from '@/components/theme-color-provider'
+
+interface ThemeColorOption {
+  value: string;
+  label: string;
+}
 
 export function SettingsPage() {
   const { theme, setTheme } = useTheme()
+  const { setThemeColor } = useThemeColor()
   const [mounted, setMounted] = useState(false)
   const [settings, setSettings] = useState({
     projectName: "AI Editor",
@@ -56,14 +63,15 @@ export function SettingsPage() {
   const applyThemeSettings = () => {
     // Aplicar cor primária
     if (settings.primaryColor !== "default") {
-      document.documentElement.className = document.documentElement.className.replace(/primary-\w+/g, "").trim()
-      document.documentElement.classList.add(`primary-${settings.primaryColor}`)
+      setThemeColor(`primary-${settings.primaryColor}`); // Adicione este método
+      document.documentElement.className = document.documentElement.className.replace(/primary-\w+/g, "").trim();
+      document.documentElement.classList.add(`primary-${settings.primaryColor}`);
     } else {
-      document.documentElement.className = document.documentElement.className.replace(/primary-\w+/g, "").trim()
+      document.documentElement.className = document.documentElement.className.replace(/primary-\w+/g, "").trim();
     }
 
     // Aplicar tamanho de fonte base
-    document.documentElement.style.fontSize = `${settings.fontSize / 16}rem`
+    document.documentElement.style.fontSize = `${settings.fontSize / 16}rem`;
   }
 
   // Salvar configurações no localStorage
@@ -129,16 +137,16 @@ export function SettingsPage() {
               <CardDescription>Configurações de notificações e alertas</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between">
                 <Label htmlFor="notifications" className="flex-1">
                   Ativar notificações
                 </Label>
                 <Switch
                   id="notifications"
                   checked={settings.notifications}
-                  onCheckedChange={(checked) => setSettings({ ...settings, notifications: checked })}
+                  onCheckedChange={(checked: boolean) => setSettings({ ...settings, notifications: checked })}
                 />
-              </div>
+                </div>
             </CardContent>
           </Card>
 
@@ -148,31 +156,31 @@ export function SettingsPage() {
               <CardDescription>Configurações de salvamento automático</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between">
                 <Label htmlFor="autoSave" className="flex-1">
                   Ativar salvamento automático
                 </Label>
                 <Switch
                   id="autoSave"
                   checked={settings.autoSave}
-                  onCheckedChange={(checked) => setSettings({ ...settings, autoSave: checked })}
+                  onCheckedChange={(checked: boolean) => setSettings({ ...settings, autoSave: checked })}
                 />
-              </div>
+                </div>
               {settings.autoSave && (
                 <div className="space-y-2">
                   <Label htmlFor="autoSaveInterval">Intervalo de salvamento (minutos)</Label>
-                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4">
                     <Slider
                       id="autoSaveInterval"
                       min={1}
                       max={30}
                       step={1}
                       value={[settings.autoSaveInterval]}
-                      onValueChange={(value) => setSettings({ ...settings, autoSaveInterval: value[0] })}
+                      onValueChange={(value: number[]) => setSettings({ ...settings, autoSaveInterval: value[0] })}
                       className="flex-1"
                     />
                     <span className="w-12 text-center">{settings.autoSaveInterval}</span>
-                  </div>
+                    </div>
                 </div>
               )}
             </CardContent>
@@ -195,16 +203,19 @@ export function SettingsPage() {
                   <SelectContent>
                     <SelectItem value="light">Claro</SelectItem>
                     <SelectItem value="dark">Escuro</SelectItem>
-                    <SelectItem value="system">Sistema</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="primaryColor">Cor Primária</Label>
                 <Select
                   value={settings.primaryColor}
-                  onValueChange={(value) => setSettings({ ...settings, primaryColor: value })}
+                  onValueChange={(value: string) => {
+                    setSettings({ ...settings, primaryColor: value });
+                    if (value !== "default") {
+                      setThemeColor(`primary-${value}`);
+                    }
+                  }}
                 >
                   <SelectTrigger id="primaryColor">
                     <SelectValue placeholder="Selecione uma cor" />
@@ -240,13 +251,13 @@ export function SettingsPage() {
                 <Label htmlFor="fontSize">Tamanho da Fonte</Label>
                 <div className="flex items-center gap-4">
                   <Slider
-                    id="fontSize"
-                    min={12}
-                    max={20}
-                    step={1}
-                    value={[settings.fontSize]}
-                    onValueChange={(value) => setSettings({ ...settings, fontSize: value[0] })}
-                    className="flex-1"
+                  id="fontSize"
+                  min={12}
+                  max={20}
+                  step={1}
+                  value={[settings.fontSize]}
+                  onValueChange={(value: number[]) => setSettings({ ...settings, fontSize: value[0] })}
+                  className="flex-1"
                   />
                   <span className="w-12 text-center">{settings.fontSize}px</span>
                 </div>

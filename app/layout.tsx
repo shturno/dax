@@ -5,6 +5,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { ThemeColorProvider } from "@/components/theme-color-provider"
 import DynamicWrapper from "@/components/dynamic-wrapper"
+import { ThemeButton } from "@/components/theme-button"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -25,6 +26,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <ThemeColorProvider>
             <DynamicWrapper />
+            <ThemeButton />
             {children}
           </ThemeColorProvider>
         </ThemeProvider>
@@ -32,4 +34,3 @@ export default function RootLayout({
     </html>
   )
 }
-
