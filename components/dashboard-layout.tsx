@@ -24,6 +24,16 @@ import {
 import { Button } from "@/components/ui/button"
 import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { User, LogOut, Settings as SettingsIcon, UserCircle } from "lucide-react"
 
 const navItems = [
   {
@@ -212,21 +222,44 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <Button variant="ghost" size="icon" className="md:hidden" onClick={toggleTheme}>
               {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
-            <Link href="/configuracoes">
-              <Button variant="ghost" size="icon">
-                <Settings className="h-5 w-5" />
-                <span className="sr-only">Configurações</span>
-              </Button>
-            </Link>
-            {session?.user?.name && (
-              <span className="text-sm">Olá, {session.user.name}</span>
-            )}
-            <button 
-              onClick={handleSignOut}
-              className="text-sm px-4 py-2 rounded bg-secondary"
-            >
-              Sair
-            </button>
+            
+            {/* Dropdown do usuário */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center gap-2 px-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src="" alt={session?.user?.name || "Usuário"} />
+                    <AvatarFallback className="bg-primary/10 text-primary">
+                      {session?.user?.name ? session.user.name.substring(0, 2).toUpperCase() : "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="hidden md:inline text-sm font-medium">
+                    {session?.user?.name || session?.user?.email?.split('@')[0] || "Usuário"}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <Link href="/profile">
+                  <DropdownMenuItem className="cursor-pointer">
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    <span>Perfil</span>
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/configuracoes">
+                  <DropdownMenuItem className="cursor-pointer">
+                    <SettingsIcon className="mr-2 h-4 w-4" />
+                    <span>Configurações</span>
+                  </DropdownMenuItem>
+                </Link>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer" onClick={handleSignOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sair</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
         <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>

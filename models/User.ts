@@ -6,6 +6,11 @@ interface UserDocument extends mongoose.Document {
   username: string;
   email: string;
   password: string;
+  fullName: string;
+  bio: string;
+  avatarUrl: string;
+  location: string;
+  website: string;
   settings: {
     projectName: string;
     projectDescription: string;
@@ -19,41 +24,64 @@ interface UserDocument extends mongoose.Document {
   matchPassword(enteredPassword: string): Promise<boolean>;
 }
 
-const UserSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
   username: {
     type: String,
-    required: [true, 'Por favor, forneça um nome de usuário'],
+    required: [true, 'Por favor forneça um nome de usuário'],
     unique: true,
+    trim: true,
   },
   email: {
     type: String,
-    required: [true, 'Por favor, forneça um email'],
+    required: [true, 'Por favor forneça um email'],
     unique: true,
+    lowercase: true,
     match: [/^\S+@\S+\.\S+$/, 'Por favor, forneça um email válido'],
   },
   password: {
     type: String,
-    required: [true, 'Por favor, forneça uma senha'],
+    required: [true, 'Por favor forneça uma senha'],
     minlength: 6,
     select: false,
   },
+  fullName: {
+    type: String,
+    default: '',
+  },
+  bio: {
+    type: String,
+    default: '',
+  },
+  avatarUrl: {
+    type: String,
+    default: '',
+  },
+  location: {
+    type: String,
+    default: '',
+  },
+  website: {
+    type: String,
+    default: '',
+  },
   settings: {
-    projectName: { type: String, default: "AI Editor" },
-    projectDescription: { type: String, default: "Editor com IA acessado via navegador" },
-    notifications: { type: Boolean, default: true },
-    autoSave: { type: Boolean, default: true },
-    autoSaveInterval: { type: Number, default: 5 },
-    fontSize: { type: Number, default: 16 },
-    primaryColor: { type: String, default: "default" },
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+    type: Object,
+    default: {
+      projectName: 'Meu Projeto',
+      projectDescription: '',
+      notifications: true,
+      autoSave: true,
+      autoSaveInterval: 5,
+      fontSize: 16,
+      primaryColor: 'default'
+    }
+  }
+}, {
+  timestamps: true,
 });
 
 // Middleware para hash de senha antes de salvar
-UserSchema.pre('save', async function(this: UserDocument, next) {
+userSchema.pre('save', async function(this: UserDocument, next) {
   if (!this.isModified('password')) {
     next();
   }
@@ -63,9 +91,10 @@ UserSchema.pre('save', async function(this: UserDocument, next) {
 });
 
 // Método para verificar senha
-UserSchema.methods.matchPassword = async function(this: UserDocument, enteredPassword: string): Promise<boolean> {
+userSchema.methods.matchPassword = async function(this: UserDocument, enteredPassword: string): Promise<boolean> {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-export default (mongoose.models.User as mongoose.Model<UserDocument>) || 
-                mongoose.model<UserDocument>('User', UserSchema);
+const User = mongoose.models.User || mongoose.model('User', userSchema);
+
+export default User;

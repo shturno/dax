@@ -46,7 +46,7 @@ export default function LoginPage() {
           variant: "destructive",
         })
       } else {
-        router.push("/dashboard")
+        router.push("/")  // Atualizar para "/" em vez de "/dashboard"
         toast({
           title: "Login bem-sucedido",
           description: "Você foi autenticado com sucesso!",
