@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,14 +19,16 @@ import { useThemeColor } from '@/components/theme-color-provider'
 export function SettingsPage() {
   const { theme, setTheme } = useTheme()
   const { setThemeColor } = useThemeColor()
+  const { data: session, status } = useSession()
   const [mounted, setMounted] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [settings, setSettings] = useState({
     projectName: "AI Editor",
     projectDescription: "Editor com IA acessado via navegador",
     notifications: true,
     autoSave: true,
     autoSaveInterval: 5,
-    fontSize: 16, // Aumentado de 14 para 16
+    fontSize: 16,
     primaryColor: "default",
   })
 
@@ -34,18 +37,35 @@ export function SettingsPage() {
     setMounted(true)
   }, [])
 
-  // Carregar configurações do localStorage
+  // Carregar configurações do servidor quando o usuário estiver autenticado
   useEffect(() => {
-    const savedSettings = localStorage.getItem("settings")
-    if (savedSettings) {
-      try {
-        const parsedSettings = JSON.parse(savedSettings)
-        setSettings((prevSettings) => ({ ...prevSettings, ...parsedSettings }))
-      } catch (e) {
-        console.error("Erro ao carregar configurações:", e)
+    async function loadSettings() {
+      if (status === "authenticated") {
+        try {
+          setLoading(true)
+          const response = await fetch('/api/settings')
+          const data = await response.json()
+          
+          if (data.success) {
+            setSettings(data.settings)
+          }
+        } catch (error) {
+          console.error("Erro ao carregar configurações:", error)
+          toast({
+            title: "Erro",
+            description: "Não foi possível carregar suas configurações.",
+            variant: "destructive",
+          })
+        } finally {
+          setLoading(false)
+        }
       }
     }
-  }, [])
+    
+    if (mounted) {
+      loadSettings()
+    }
+  }, [status, mounted])
 
   // Aplicar configurações de cor e tamanho de fonte
   useEffect(() => {
@@ -58,27 +78,60 @@ export function SettingsPage() {
   const applyThemeSettings = () => {
     // Aplicar cor primária
     if (settings.primaryColor !== "default") {
-      setThemeColor(`primary-${settings.primaryColor}`);
-      document.documentElement.className = document.documentElement.className.replace(/primary-\w+/g, "").trim();
-      document.documentElement.classList.add(`primary-${settings.primaryColor}`);
+      setThemeColor(`primary-${settings.primaryColor}`)
+      document.documentElement.className = document.documentElement.className.replace(/primary-\w+/g, "").trim()
+      document.documentElement.classList.add(`primary-${settings.primaryColor}`)
     } else {
-      document.documentElement.className = document.documentElement.className.replace(/primary-\w+/g, "").trim();
+      document.documentElement.className = document.documentElement.className.replace(/primary-\w+/g, "").trim()
     }
 
     // Aplicar tamanho de fonte base
-    document.documentElement.style.fontSize = `${settings.fontSize / 16}rem`;
+    document.documentElement.style.fontSize = `${settings.fontSize / 16}rem`
   }
 
-  // Salvar configurações no localStorage
-  const saveSettings = () => {
-    localStorage.setItem("settings", JSON.stringify(settings))
-    applyThemeSettings()
+  // Salvar configurações no servidor
+  const saveSettings = async () => {
+    if (status !== "authenticated") {
+      toast({
+        title: "Não autenticado",
+        description: "Você precisa estar conectado para salvar configurações.",
+        variant: "destructive",
+      })
+      return
+    }
 
-    toast({
-      title: "Configurações salvas",
-      description: "Suas configurações foram salvas com sucesso.",
-      action: <ToastAction altText="Ok">Ok</ToastAction>,
-    })
+    try {
+      setLoading(true)
+      const response = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(settings),
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        applyThemeSettings()
+        toast({
+          title: "Configurações salvas",
+          description: "Suas configurações foram salvas com sucesso.",
+          action: <ToastAction altText="Ok">Ok</ToastAction>,
+        })
+      } else {
+        throw new Error(data.message)
+      }
+    } catch (error) {
+      console.error("Erro ao salvar configurações:", error)
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar suas configurações.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   // Se não estiver montado, não renderiza para evitar problemas de hidratação
@@ -90,7 +143,9 @@ export function SettingsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Configurações</h2>
-        <Button onClick={saveSettings} size="lg">Salvar Alterações</Button>
+        <Button onClick={saveSettings} size="lg" disabled={loading}>
+          {loading ? "Salvando..." : "Salvar Alterações"}
+        </Button>
       </div>
 
       <Tabs defaultValue="general" className="w-full">
