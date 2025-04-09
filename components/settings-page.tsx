@@ -15,11 +15,6 @@ import { ToastAction } from "@/components/ui/toast"
 import { Toaster } from "@/components/ui/toaster"
 import { useThemeColor } from '@/components/theme-color-provider'
 
-interface ThemeColorOption {
-  value: string;
-  label: string;
-}
-
 export function SettingsPage() {
   const { theme, setTheme } = useTheme()
   const { setThemeColor } = useThemeColor()
@@ -30,7 +25,7 @@ export function SettingsPage() {
     notifications: true,
     autoSave: true,
     autoSaveInterval: 5,
-    fontSize: 14,
+    fontSize: 16, // Aumentado de 14 para 16
     primaryColor: "default",
   })
 
@@ -63,7 +58,7 @@ export function SettingsPage() {
   const applyThemeSettings = () => {
     // Aplicar cor primária
     if (settings.primaryColor !== "default") {
-      setThemeColor(`primary-${settings.primaryColor}`); // Adicione este método
+      setThemeColor(`primary-${settings.primaryColor}`);
       document.documentElement.className = document.documentElement.className.replace(/primary-\w+/g, "").trim();
       document.documentElement.classList.add(`primary-${settings.primaryColor}`);
     } else {
@@ -94,38 +89,40 @@ export function SettingsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">Configurações</h2>
-        <Button onClick={saveSettings}>Salvar Alterações</Button>
+        <h2 className="text-2xl font-bold">Configurações</h2>
+        <Button onClick={saveSettings} size="lg">Salvar Alterações</Button>
       </div>
 
       <Tabs defaultValue="general" className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-3">
-          <TabsTrigger value="general">Geral</TabsTrigger>
-          <TabsTrigger value="appearance">Aparência</TabsTrigger>
-          <TabsTrigger value="editor">Editor</TabsTrigger>
+          <TabsTrigger value="general" className="text-base py-2">Geral</TabsTrigger>
+          <TabsTrigger value="appearance" className="text-base py-2">Aparência</TabsTrigger>
+          <TabsTrigger value="editor" className="text-base py-2">Editor</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="general" className="mt-4 space-y-4">
+        <TabsContent value="general" className="mt-6 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Informações do Projeto</CardTitle>
-              <CardDescription>Configurações básicas do seu projeto</CardDescription>
+              <CardTitle className="text-xl">Informações do Projeto</CardTitle>
+              <CardDescription className="text-base">Configurações básicas do seu projeto</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="projectName">Nome do Projeto</Label>
+                <Label htmlFor="projectName" className="text-base">Nome do Projeto</Label>
                 <Input
                   id="projectName"
                   value={settings.projectName}
                   onChange={(e) => setSettings({ ...settings, projectName: e.target.value })}
+                  className="text-base"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="projectDescription">Descrição</Label>
+                <Label htmlFor="projectDescription" className="text-base">Descrição</Label>
                 <Input
                   id="projectDescription"
                   value={settings.projectDescription}
                   onChange={(e) => setSettings({ ...settings, projectDescription: e.target.value })}
+                  className="text-base"
                 />
               </div>
             </CardContent>
@@ -133,12 +130,12 @@ export function SettingsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Notificações</CardTitle>
-              <CardDescription>Configurações de notificações e alertas</CardDescription>
+              <CardTitle className="text-xl">Notificações</CardTitle>
+              <CardDescription className="text-base">Configurações de notificações e alertas</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                <Label htmlFor="notifications" className="flex-1">
+                <Label htmlFor="notifications" className="flex-1 text-base">
                   Ativar notificações
                 </Label>
                 <Switch
@@ -152,12 +149,12 @@ export function SettingsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Salvamento Automático</CardTitle>
-              <CardDescription>Configurações de salvamento automático</CardDescription>
+              <CardTitle className="text-xl">Salvamento Automático</CardTitle>
+              <CardDescription className="text-base">Configurações de salvamento automático</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                <Label htmlFor="autoSave" className="flex-1">
+                <Label htmlFor="autoSave" className="flex-1 text-base">
                   Ativar salvamento automático
                 </Label>
                 <Switch
@@ -168,7 +165,7 @@ export function SettingsPage() {
                 </div>
               {settings.autoSave && (
                 <div className="space-y-2">
-                  <Label htmlFor="autoSaveInterval">Intervalo de salvamento (minutos)</Label>
+                  <Label htmlFor="autoSaveInterval" className="text-base">Intervalo de salvamento (minutos)</Label>
                     <div className="flex items-center gap-4">
                     <Slider
                       id="autoSaveInterval"
@@ -179,7 +176,7 @@ export function SettingsPage() {
                       onValueChange={(value: number[]) => setSettings({ ...settings, autoSaveInterval: value[0] })}
                       className="flex-1"
                     />
-                    <span className="w-12 text-center">{settings.autoSaveInterval}</span>
+                    <span className="w-12 text-center text-base">{settings.autoSaveInterval}</span>
                     </div>
                 </div>
               )}
@@ -187,27 +184,27 @@ export function SettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="appearance" className="mt-4 space-y-4">
+        <TabsContent value="appearance" className="mt-6 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Tema</CardTitle>
-              <CardDescription>Configurações de aparência do dashboard</CardDescription>
+              <CardTitle className="text-xl">Tema</CardTitle>
+              <CardDescription className="text-base">Configurações de aparência do dashboard</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="theme">Tema</Label>
+                <Label htmlFor="theme" className="text-base">Tema</Label>
                 <Select value={theme} onValueChange={setTheme}>
-                  <SelectTrigger id="theme">
+                  <SelectTrigger id="theme" className="text-base">
                     <SelectValue placeholder="Selecione um tema" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="light">Claro</SelectItem>
-                    <SelectItem value="dark">Escuro</SelectItem>
+                    <SelectItem value="light" className="text-base">Claro</SelectItem>
+                    <SelectItem value="dark" className="text-base">Escuro</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="primaryColor">Cor Primária</Label>
+                <Label htmlFor="primaryColor" className="text-base">Cor Primária</Label>
                 <Select
                   value={settings.primaryColor}
                   onValueChange={(value: string) => {
@@ -217,15 +214,15 @@ export function SettingsPage() {
                     }
                   }}
                 >
-                  <SelectTrigger id="primaryColor">
+                  <SelectTrigger id="primaryColor" className="text-base">
                     <SelectValue placeholder="Selecione uma cor" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="default">Padrão</SelectItem>
-                    <SelectItem value="blue">Azul</SelectItem>
-                    <SelectItem value="green">Verde</SelectItem>
-                    <SelectItem value="purple">Roxo</SelectItem>
-                    <SelectItem value="orange">Laranja</SelectItem>
+                    <SelectItem value="default" className="text-base">Padrão</SelectItem>
+                    <SelectItem value="blue" className="text-base">Azul</SelectItem>
+                    <SelectItem value="green" className="text-base">Verde</SelectItem>
+                    <SelectItem value="purple" className="text-base">Roxo</SelectItem>
+                    <SelectItem value="orange" className="text-base">Laranja</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -233,7 +230,7 @@ export function SettingsPage() {
             <CardFooter>
               <Button
                 variant="outline"
-                className="w-full"
+                className="w-full text-base py-5"
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               >
                 {theme === "dark" ? "Mudar para Modo Claro" : "Mudar para Modo Escuro"}
@@ -243,30 +240,30 @@ export function SettingsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Visualização</CardTitle>
-              <CardDescription>Configurações de visualização</CardDescription>
+              <CardTitle className="text-xl">Visualização</CardTitle>
+              <CardDescription className="text-base">Configurações de visualização</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="fontSize">Tamanho da Fonte</Label>
+                <Label htmlFor="fontSize" className="text-base">Tamanho da Fonte</Label>
                 <div className="flex items-center gap-4">
                   <Slider
-                  id="fontSize"
-                  min={12}
-                  max={20}
-                  step={1}
-                  value={[settings.fontSize]}
-                  onValueChange={(value: number[]) => setSettings({ ...settings, fontSize: value[0] })}
-                  className="flex-1"
+                    id="fontSize"
+                    min={14}
+                    max={24}
+                    step={1}
+                    value={[settings.fontSize]}
+                    onValueChange={(value: number[]) => setSettings({ ...settings, fontSize: value[0] })}
+                    className="flex-1"
                   />
-                  <span className="w-12 text-center">{settings.fontSize}px</span>
+                  <span className="w-16 text-center text-base">{settings.fontSize}px</span>
                 </div>
               </div>
               <div className="pt-4">
-                <p className="text-sm font-medium">Prévia:</p>
+                <p className="text-base font-medium">Prévia:</p>
                 <div className="mt-2 rounded-md border p-4">
                   <h3 className="text-lg font-semibold">Exemplo de Texto</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-base text-muted-foreground">
                     Este é um exemplo de como o texto aparecerá com o tamanho de fonte selecionado.
                   </p>
                 </div>
@@ -275,33 +272,33 @@ export function SettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="editor" className="mt-4 space-y-4">
+        <TabsContent value="editor" className="mt-6 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Configurações do Editor</CardTitle>
-              <CardDescription>Personalize seu ambiente de edição</CardDescription>
+              <CardTitle className="text-xl">Configurações do Editor</CardTitle>
+              <CardDescription className="text-base">Personalize seu ambiente de edição</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label htmlFor="autoComplete" className="flex-1">
+                <Label htmlFor="autoComplete" className="flex-1 text-base">
                   Autocompletar com IA
                 </Label>
                 <Switch id="autoComplete" defaultChecked />
               </div>
               <div className="flex items-center justify-between">
-                <Label htmlFor="syntaxHighlight" className="flex-1">
+                <Label htmlFor="syntaxHighlight" className="flex-1 text-base">
                   Destacamento de Sintaxe
                 </Label>
                 <Switch id="syntaxHighlight" defaultChecked />
               </div>
               <div className="flex items-center justify-between">
-                <Label htmlFor="lineNumbers" className="flex-1">
+                <Label htmlFor="lineNumbers" className="flex-1 text-base">
                   Números de Linha
                 </Label>
                 <Switch id="lineNumbers" defaultChecked />
               </div>
               <div className="flex items-center justify-between">
-                <Label htmlFor="wordWrap" className="flex-1">
+                <Label htmlFor="wordWrap" className="flex-1 text-base">
                   Quebra de Linha
                 </Label>
                 <Switch id="wordWrap" defaultChecked />
@@ -311,35 +308,35 @@ export function SettingsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Inteligência Artificial</CardTitle>
-              <CardDescription>Configurações de IA para o editor</CardDescription>
+              <CardTitle className="text-xl">Inteligência Artificial</CardTitle>
+              <CardDescription className="text-base">Configurações de IA para o editor</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="aiModel">Modelo de IA</Label>
+                <Label htmlFor="aiModel" className="text-base">Modelo de IA</Label>
                 <Select defaultValue="gpt4">
-                  <SelectTrigger id="aiModel">
+                  <SelectTrigger id="aiModel" className="text-base">
                     <SelectValue placeholder="Selecione um modelo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="gpt4">GPT-4</SelectItem>
-                    <SelectItem value="gpt3">GPT-3.5</SelectItem>
-                    <SelectItem value="codex">Codex</SelectItem>
-                    <SelectItem value="custom">Modelo Personalizado</SelectItem>
+                    <SelectItem value="gpt4" className="text-base">GPT-4</SelectItem>
+                    <SelectItem value="gpt3" className="text-base">GPT-3.5</SelectItem>
+                    <SelectItem value="codex" className="text-base">Codex</SelectItem>
+                    <SelectItem value="custom" className="text-base">Modelo Personalizado</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="aiSuggestionFrequency">Frequência de Sugestões</Label>
+                <Label htmlFor="aiSuggestionFrequency" className="text-base">Frequência de Sugestões</Label>
                 <Select defaultValue="medium">
-                  <SelectTrigger id="aiSuggestionFrequency">
+                  <SelectTrigger id="aiSuggestionFrequency" className="text-base">
                     <SelectValue placeholder="Selecione a frequência" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="high">Alta</SelectItem>
-                    <SelectItem value="medium">Média</SelectItem>
-                    <SelectItem value="low">Baixa</SelectItem>
-                    <SelectItem value="manual">Manual</SelectItem>
+                    <SelectItem value="high" className="text-base">Alta</SelectItem>
+                    <SelectItem value="medium" className="text-base">Média</SelectItem>
+                    <SelectItem value="low" className="text-base">Baixa</SelectItem>
+                    <SelectItem value="manual" className="text-base">Manual</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
