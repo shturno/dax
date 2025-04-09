@@ -9,12 +9,12 @@ export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })
   const isAuthenticated = !!token
 
-  // Rotas que exigem autenticação
-  const isProtectedRoute = pathname.startsWith('/dashboard') || 
-                         pathname.startsWith('/settings') ||
-                         pathname.startsWith('/editor')
+  // Protege a página inicial (que contém seu dashboard) e outras rotas
+  const isProtectedRoute = pathname === "/" || 
+                          pathname.startsWith('/features') || 
+                          pathname.startsWith('/configuracoes')
   
-  // Redirecionar usuários não autenticados das rotas protegidas para o login
+  // Redirecionar usuários não autenticados para o login
   if (isProtectedRoute && !isAuthenticated) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
@@ -22,22 +22,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Redirecionar usuários autenticados de páginas de autenticação para o dashboard
+  // Redirecionar usuários autenticados da página de login para o dashboard
   if ((pathname === '/login' || pathname === '/register') && isAuthenticated) {
     const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
-    return NextResponse.redirect(url)
+    url.pathname = '/'  // Redireciona para a página inicial
+    return NextResponse.redirect(url)  // Estava incompleto aqui
   }
-
-  return NextResponse.next()
-}
-
-export const config = {
-  matcher: [
-    '/dashboard/:path*',
-    '/settings/:path*',
-    '/editor/:path*',
-    '/login',
-    '/register',
-  ],
 }

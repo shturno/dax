@@ -2,17 +2,16 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { toast } from "@/components/ui/use-toast"
-import { Toaster } from "@/components/ui/toaster"
-import Link from "next/link"
-import React from "react"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function RegisterPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     username: "",
@@ -70,17 +69,10 @@ export default function RegisterPage() {
       } else {
         throw new Error(data.message || "Erro ao criar conta")
       }
-    } catch (error: unknown) {
-      let errorMessage = "Ocorreu um erro durante o registro";
-      
-      // Verificar se o erro é uma instância de Error
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      
+    } catch (error: any) {
       toast({
         title: "Erro",
-        description: errorMessage,
+        description: error.message || "Ocorreu um erro durante o registro",
         variant: "destructive",
       })
     } finally {
@@ -89,16 +81,18 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl">Registrar</CardTitle>
-          <CardDescription>Crie sua conta para acessar a plataforma</CardDescription>
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold">Criar uma conta</CardTitle>
+          <CardDescription>
+            Preencha os campos abaixo para criar sua conta
+          </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Nome de Usuário</Label>
+              <Label htmlFor="username">Nome de usuário</Label>
               <Input
                 id="username"
                 name="username"
@@ -134,7 +128,7 @@ export default function RegisterPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+              <Label htmlFor="confirmPassword">Confirmar senha</Label>
               <Input
                 id="confirmPassword"
                 name="confirmPassword"
@@ -147,7 +141,7 @@ export default function RegisterPage() {
               />
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-2">
+          <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Registrando..." : "Registrar"}
             </Button>
@@ -160,7 +154,6 @@ export default function RegisterPage() {
           </CardFooter>
         </form>
       </Card>
-      <Toaster />
     </div>
   )
 }

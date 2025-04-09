@@ -1,7 +1,8 @@
 "use client"
 
 import type React from "react"
-
+import { useSession, signOut } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -78,6 +79,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const { data: session, status } = useSession()
+  const router = useRouter()
 
   // Após a montagem do componente, podemos acessar o tema
   useEffect(() => {
@@ -113,6 +116,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     if (mounted) {
       setTheme(theme === "dark" ? "light" : "dark")
     }
+  }
+
+  // Função para lidar com o logout
+  const handleSignOut = async () => {
+    await signOut({ redirect: false })
+    router.push("/login")
   }
 
   // Se não estiver montado, renderiza um layout básico para evitar problemas de hidratação
@@ -209,6 +218,15 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <span className="sr-only">Configurações</span>
               </Button>
             </Link>
+            {session?.user?.name && (
+              <span className="text-sm">Olá, {session.user.name}</span>
+            )}
+            <button 
+              onClick={handleSignOut}
+              className="text-sm px-4 py-2 rounded bg-secondary"
+            >
+              Sair
+            </button>
           </div>
         </header>
         <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
