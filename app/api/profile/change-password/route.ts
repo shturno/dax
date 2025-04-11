@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import bcrypt from "bcryptjs"
 import dbConnect from "@/lib/mongodb"
-import User from "@/models/User"
+import getUserModel from "@/models/User"
 
 export async function POST(request: Request) {
   try {
@@ -33,7 +33,8 @@ export async function POST(request: Request) {
     
     await dbConnect()
     
-    // Buscar usuário com senha
+    const User = await getUserModel()
+    
     const user = await User.findOne({ email: session.user.email }).select("+password")
     
     if (!user) {
@@ -42,8 +43,7 @@ export async function POST(request: Request) {
         { status: 404 }
       )
     }
-    
-    // Verificar se a senha atual está correta
+
     const isMatch = await bcrypt.compare(currentPassword, user.password)
     
     if (!isMatch) {
@@ -53,10 +53,8 @@ export async function POST(request: Request) {
       )
     }
     
-    // Gerar hash da nova senha
     const hashedPassword = await bcrypt.hash(newPassword, 10)
     
-    // Atualizar a senha
     await User.findOneAndUpdate(
       { email: session.user.email },
       { $set: { password: hashedPassword } }

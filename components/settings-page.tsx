@@ -14,11 +14,11 @@ import { Slider } from "@/components/ui/slider"
 import { toast } from "@/components/ui/use-toast"
 import { ToastAction } from "@/components/ui/toast"
 import { Toaster } from "@/components/ui/toaster"
-import { useThemeColor } from '@/components/theme-color-provider'
+import { useThemeColor, type ThemeColor } from '@/components/theme-color-provider'
 
-export function SettingsPage() {
+
+export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
-  const { setThemeColor } = useThemeColor()
   const { data: session, status } = useSession()
   const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -32,12 +32,32 @@ export function SettingsPage() {
     primaryColor: "default",
   })
 
-  // Garantir que o componente está montado para evitar problemas de hidratação
+  const { color, setColor } = useThemeColor()
+  
+  const handleColorChange = (newColor: string) => {
+    setSettings({
+      ...settings,
+      primaryColor: newColor
+    });
+    
+    if (isValidThemeColor(newColor)) {
+      setColor(newColor);
+      
+      document.querySelector('[data-preview]')?.setAttribute(
+        'style', 
+        `background-color: var(--${newColor === 'default' ? 'blue' : newColor})`
+      );
+    }
+  }
+
+  function isValidThemeColor(color: string): color is ThemeColor {
+    return ['default', 'blue', 'green', 'purple', 'orange'].includes(color);
+  }
+
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Carregar configurações do servidor quando o usuário estiver autenticado
   useEffect(() => {
     async function loadSettings() {
       if (status === "authenticated") {
@@ -46,8 +66,11 @@ export function SettingsPage() {
           const response = await fetch('/api/settings')
           const data = await response.json()
           
-          if (data.success) {
-            setSettings(data.settings)
+          if (data.success && data.user) {
+            setSettings({
+              ...settings, // Mantém valores padrão
+              ...data.user.settings // Sobrescreve com valores do servidor
+            })
           }
         } catch (error) {
           console.error("Erro ao carregar configurações:", error)
@@ -67,29 +90,43 @@ export function SettingsPage() {
     }
   }, [status, mounted])
 
-  // Aplicar configurações de cor e tamanho de fonte
   useEffect(() => {
-    if (mounted) {
+    if (mounted && settings) {
       applyThemeSettings()
     }
-  }, [settings.primaryColor, settings.fontSize, mounted])
+  }, [settings?.primaryColor, settings?.fontSize, mounted])
 
-  // Função para aplicar configurações de tema
   const applyThemeSettings = () => {
-    // Aplicar cor primária
-    if (settings.primaryColor !== "default") {
-      setThemeColor(`primary-${settings.primaryColor}`)
-      document.documentElement.className = document.documentElement.className.replace(/primary-\w+/g, "").trim()
-      document.documentElement.classList.add(`primary-${settings.primaryColor}`)
-    } else {
-      document.documentElement.className = document.documentElement.className.replace(/primary-\w+/g, "").trim()
-    }
-
-    // Aplicar tamanho de fonte base
-    document.documentElement.style.fontSize = `${settings.fontSize / 16}rem`
+    if (!settings) return;
+    
+    // Remove as classes existentes
+    document.documentElement.classList.remove(
+      'theme-default', 'theme-blue', 'theme-green', 'theme-purple', 'theme-orange'
+    );
+    
+    // Adiciona a nova classe
+    document.documentElement.classList.add(`theme-${settings.primaryColor}`);
+    
+    // Força a atualização de cores (mais importante)
+    document.body.style.setProperty('--primary', getHSLValue(settings.primaryColor));
+    
+    // Tamanho da fonte
+    document.documentElement.style.fontSize = `${settings.fontSize / 16}rem`;
+    
+    console.log(`Tema atual: ${settings.primaryColor}`);
   }
 
-  // Salvar configurações no servidor
+  // Adicione esta função auxiliar
+  function getHSLValue(color: string): string {
+    switch (color) {
+      case 'green': return '142 72% 29%';
+      case 'purple': return '271 91% 65%';
+      case 'orange': return '24 95% 53%';
+      case 'blue': return '221 83% 53%';
+      default: return '221 83% 53%'; // default (blue)
+    }
+  }
+
   const saveSettings = async () => {
     if (status !== "authenticated") {
       toast({
@@ -119,6 +156,10 @@ export function SettingsPage() {
           description: "Suas configurações foram salvas com sucesso.",
           action: <ToastAction altText="Ok">Ok</ToastAction>,
         })
+        
+        if (settings.primaryColor && isValidThemeColor(settings.primaryColor)) {
+          setColor(settings.primaryColor)
+        }
       } else {
         throw new Error(data.message)
       }
@@ -134,7 +175,6 @@ export function SettingsPage() {
     }
   }
 
-  // Se não estiver montado, não renderiza para evitar problemas de hidratação
   if (!mounted) {
     return null
   }
@@ -262,12 +302,7 @@ export function SettingsPage() {
                 <Label htmlFor="primaryColor" className="text-base">Cor Primária</Label>
                 <Select
                   value={settings.primaryColor}
-                  onValueChange={(value: string) => {
-                    setSettings({ ...settings, primaryColor: value });
-                    if (value !== "default") {
-                      setThemeColor(`primary-${value}`);
-                    }
-                  }}
+                  onValueChange={(value: string) => handleColorChange(value)}
                 >
                   <SelectTrigger id="primaryColor" className="text-base">
                     <SelectValue placeholder="Selecione uma cor" />

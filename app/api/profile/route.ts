@@ -1,110 +1,111 @@
-import { NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import dbConnect from "@/lib/mongodb"
-import User from "@/models/User"
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { MongoClient } from "mongodb";
 
-// GET: Obter dados do perfil
+async function connectToMongo() {
+  const client = new MongoClient(process.env.MONGODB_URI!);
+  await client.connect();
+  return client;
+}
+
 export async function GET() {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.email) {
+    return NextResponse.json(
+      { success: false, message: "Não autorizado" },
+      { status: 401 }
+    );
+  }
+
+  let client = null;
   try {
-    const session = await getServerSession()
+    client = await connectToMongo();
+    const db = client.db("saas-dashboard");
     
-    // Verificação flexível da sessão
-    if (!session || !session.user?.email) {
-      return NextResponse.json(
-        { success: false, message: "Não autorizado" },
-        { status: 401 }
-      )
-    }
+    const normalizedEmail = session.user.email.toLowerCase();
+    console.log(`🔍 Buscando usuário: ${normalizedEmail}`);
     
-    await dbConnect()
-    
-    const user = await User.findOne({ email: session.user.email }).select("-password")
+    const user = await db.collection("users").findOne({ email: normalizedEmail });
     
     if (!user) {
+      console.log("❌ Usuário não encontrado");
       return NextResponse.json(
         { success: false, message: "Usuário não encontrado" },
         { status: 404 }
-      )
+      );
     }
+    
+    // Remover senha e outras informações sensíveis
+    const { password, ...userWithoutPassword } = user;
     
     return NextResponse.json({
       success: true,
-      user: {
-        _id: user._id,
-        username: user.username || session.user.email?.split('@')[0] || "Usuário",
-        email: user.email,
-        fullName: user.fullName || "",
-        bio: user.bio || "",
-        location: user.location || "",
-        website: user.website || "",
-        avatarUrl: user.avatarUrl || "",
-      }
-    })
-  } catch (error: any) {
-    console.error("Erro ao buscar perfil:", error)
+      user: userWithoutPassword
+    });
+  } catch (error) {
+    console.error("❌ Erro ao buscar dados do usuário:", error);
     return NextResponse.json(
-      { success: false, message: error.message || "Erro interno do servidor" },
+      { success: false, message: "Erro no servidor" },
       { status: 500 }
-    )
+    );
+  } finally {
+    if (client) await client.close();
   }
 }
 
-// PUT: Atualizar dados do perfil
 export async function PUT(request: Request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.email) {
+    return NextResponse.json(
+      { success: false, message: "Não autorizado" },
+      { status: 401 }
+    );
+  }
+
+  let client = null;
   try {
-    const session = await getServerSession()
+    const data = await request.json();
     
-    if (!session || !session.user?.email) {
-      return NextResponse.json(
-        { success: false, message: "Não autorizado" },
-        { status: 401 }
-      )
-    }
+    client = await connectToMongo();
+    const db = client.db("saas-dashboard");
     
-    const data = await request.json()
-    const { fullName, bio, location, website } = data
+    const normalizedEmail = session.user.email.toLowerCase();
+    console.log(`🔄 Atualizando usuário: ${normalizedEmail}`);
     
-    await dbConnect()
+    // Não permitir alteração do email
+    const { email, ...updateData } = data;
     
-    // Encontrar e atualizar o usuário pelo email (mais confiável que o id no contexto do NextAuth)
-    const updatedUser = await User.findOneAndUpdate(
-      { email: session.user.email },
-      { 
-        $set: { 
-          fullName, 
-          bio, 
-          location, 
-          website 
-        } 
-      },
-      { new: true }
-    ).select("-password")
+    const result = await db.collection("users").updateOne(
+      { email: normalizedEmail },
+      { $set: { 
+        username: updateData.username,
+        settings: updateData.settings,
+        updatedAt: new Date() 
+      } }
+    );
     
-    if (!updatedUser) {
+    if (result.matchedCount === 0) {
+      console.log("❌ Usuário não encontrado para atualização");
       return NextResponse.json(
         { success: false, message: "Usuário não encontrado" },
         { status: 404 }
-      )
+      );
     }
     
     return NextResponse.json({
       success: true,
-      user: {
-        _id: updatedUser._id,
-        username: updatedUser.username,
-        email: updatedUser.email,
-        fullName: updatedUser.fullName || "",
-        bio: updatedUser.bio || "",
-        location: updatedUser.location || "",
-        website: updatedUser.website || "",
-        avatarUrl: updatedUser.avatarUrl || "",
-      }
-    })
-  } catch (error: any) {
-    console.error("Erro ao atualizar perfil:", error)
+      message: "Perfil atualizado com sucesso"
+    });
+  } catch (error) {
+    console.error("❌ Erro ao atualizar perfil:", error);
     return NextResponse.json(
-      { success: false, message: error.message || "Erro interno do servidor" },
+      { success: false, message: "Erro ao atualizar perfil" },
       { status: 500 }
-    )
+    );
+  } finally {
+    if (client) await client.close();
   }
 }

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import dbConnect from '@/lib/mongodb';
 
 // Interface para tipar os métodos de instância
 interface UserDocument extends mongoose.Document {
@@ -40,8 +41,7 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, 'Por favor forneça uma senha'],
-    minlength: 6,
+    required: true,
     select: false,
   },
   fullName: {
@@ -78,6 +78,7 @@ const userSchema = new mongoose.Schema({
   }
 }, {
   timestamps: true,
+  collection: 'users', 
 });
 
 // Middleware para hash de senha antes de salvar
@@ -88,13 +89,40 @@ userSchema.pre('save', async function(this: UserDocument, next) {
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+  next(); 
 });
 
-// Método para verificar senha
-userSchema.methods.matchPassword = async function(this: UserDocument, enteredPassword: string): Promise<boolean> {
-  return await bcrypt.compare(enteredPassword, this.password);
+userSchema.methods.matchPassword = async function(enteredPassword: string) {
+  try {
+    console.log("📝 Verificando senha...");
+    console.log("🔐 Senha no banco:", this.password ? "***" + this.password.substr(-4) : "undefined");
+    return await bcrypt.compare(enteredPassword, this.password);
+  } catch (error) {
+    console.error("❌ Erro ao comparar senha:", error);
+    return false;
+  }
 };
 
-const User = mongoose.models.User || mongoose.model('User', userSchema);
+let userModelInstance: any = null;
 
-export default User;
+async function getUserModel() {
+  if (userModelInstance) {
+    console.log("♻️ Reutilizando modelo User existente");
+    return userModelInstance;
+  }
+
+  await dbConnect();
+  const db = mongoose.connection.useDb('saas-dashboard');
+  
+  if (db.models.User) {
+    console.log("✅ Usando modelo User existente do mongoose");
+    userModelInstance = db.models.User;
+    return userModelInstance;
+  }
+  
+  console.log("🔧 Criando novo modelo User");
+  userModelInstance = db.model('User', userSchema);
+  return userModelInstance;
+}
+
+export default getUserModel;

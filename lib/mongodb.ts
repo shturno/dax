@@ -1,49 +1,38 @@
 import mongoose from 'mongoose';
 
-interface Cached {
+const MONGODB_URI = process.env.MONGODB_URI!;
+
+let cachedConn: {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
-}
-
-// Declarar o tipo global de maneira mais clara
-declare global {
-  // eslint-disable-next-line no-var
-  var mongoose: Cached | undefined;
-}
-
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/saas-dashboard';
-
-if (!MONGODB_URI) {
-  throw new Error('Por favor, defina a variável de ambiente MONGODB_URI');
-}
-
-let cached: Cached = global.mongoose || { conn: null, promise: null };
-
-if (!global.mongoose) {
-  global.mongoose = cached;
-}
+} = {
+  conn: null,
+  promise: null
+};
 
 async function dbConnect() {
-  if (cached.conn) {
-    return cached.conn;
+  if (cachedConn.conn) {
+    console.log("♻️ Usando conexão MongoDB existente");
+    return cachedConn.conn;
   }
 
-  if (!cached.promise) {
-    const opts = {
+  if (!cachedConn.promise) {
+    console.log("🔄 Criando nova conexão MongoDB...");
+    
+    cachedConn.promise = mongoose.connect(MONGODB_URI, {
       bufferCommands: false,
-    };
-
-    cached.promise = mongoose.connect(MONGODB_URI, opts);
+    });
   }
   
   try {
-    cached.conn = await cached.promise;
+    cachedConn.conn = await cachedConn.promise;
+    console.log("✅ Conectado ao MongoDB com sucesso");
+    return cachedConn.conn;
   } catch (e) {
-    cached.promise = null;
+    cachedConn.promise = null;
+    console.error("Erro na conexão:", e);
     throw e;
   }
-  
-  return cached.conn;
 }
 
 export default dbConnect;

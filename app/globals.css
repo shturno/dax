@@ -47,6 +47,26 @@
   --ring: 224.3 76.3% 48%;
 }
 
+.theme-default {
+  --primary: 221 83% 53%;
+}
+
+.theme-blue {
+  --primary: 221 83% 53%;
+}
+
+.theme-green {
+  --primary: 142 72% 29%;
+}
+
+.theme-purple {
+  --primary: 271 91% 65%;
+}
+
+.theme-orange {
+  --primary: 24 95% 53%;
+}
+
 @layer base {
   * {
     @apply border-[hsl(var(--border))];

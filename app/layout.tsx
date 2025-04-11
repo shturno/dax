@@ -3,24 +3,39 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { Providers } from "@/components/providers"
+import Script from "next/script"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "AI Editor Dashboard",
-  description: "Project management dashboard for AI-powered browser editor",
-  generator: 'v0.dev'
+  title: "SaaS Dashboard",
+  description: "Project management dashboard for SaaS applications created by @shturno",
 }
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body className={inter.className}>
-        <Providers>{children}</Providers>
+      <head>
+        <Script id="theme-script" strategy="beforeInteractive">
+          {`
+          (function() {
+            try {
+              const savedTheme = localStorage.getItem('theme') || 'dark';
+              document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+              document.documentElement.style.colorScheme = savedTheme;
+            } catch (e) {
+              console.error('Failed to apply theme:', e);
+            }
+          })();
+          `}
+        </Script>
+      </head>
+      <body>
+        {children}
       </body>
     </html>
   )

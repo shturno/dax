@@ -1,182 +1,200 @@
-import { NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import bcrypt from "bcryptjs"
-import dbConnect from "@/lib/mongodb"
-import User from "@/models/User"
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { MongoClient } from "mongodb";
+import bcrypt from "bcryptjs";
 
-// GET: Obter dados do perfil
+async function connectToMongo() {
+  const client = new MongoClient(process.env.MONGODB_URI!);
+  await client.connect();
+  return client;
+}
+
 export async function GET() {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.email) {
+    return NextResponse.json(
+      { success: false, message: "Não autorizado" },
+      { status: 401 }
+    );
+  }
+
+  let client = null;
   try {
-    const session = await getServerSession()
+    client = await connectToMongo();
+    const db = client.db("saas-dashboard");
     
-    if (!session || !session.user?.id) {
-      return NextResponse.json(
-        { success: false, message: "Não autorizado" },
-        { status: 401 }
-      )
-    }
+    const normalizedEmail = session.user.email.toLowerCase();
+    console.log(`🔍 Buscando configurações para: ${normalizedEmail}`);
     
-    await dbConnect()
-    
-    const user = await User.findById(session.user.id).select("-password")
+    const user = await db.collection("users").findOne({ email: normalizedEmail });
     
     if (!user) {
+      console.log("❌ Usuário não encontrado");
       return NextResponse.json(
         { success: false, message: "Usuário não encontrado" },
         { status: 404 }
-      )
+      );
     }
     
     return NextResponse.json({
       success: true,
-      user: {
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-        fullName: user.fullName || "",
-        bio: user.bio || "",
-        avatarUrl: user.avatarUrl || "",
-        location: user.location || "",
-        website: user.website || ""
-      }
-    })
-  } catch (error: any) {
-    console.error("Erro ao buscar perfil:", error)
+      settings: user.settings || {}
+    });
+  } catch (error) {
+    console.error("❌ Erro ao buscar configurações:", error);
     return NextResponse.json(
-      { success: false, message: error.message || "Erro interno do servidor" },
+      { success: false, message: "Erro no servidor" },
       { status: 500 }
-    )
+    );
+  } finally {
+    if (client) await client.close();
   }
 }
 
-// PUT: Atualizar dados do perfil
 export async function PUT(request: Request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.email) {
+    return NextResponse.json(
+      { success: false, message: "Não autorizado" },
+      { status: 401 }
+    );
+  }
+
+  let client = null;
   try {
-    const session = await getServerSession()
+    const data = await request.json();
     
-    if (!session || !session.user?.id) {
-      return NextResponse.json(
-        { success: false, message: "Não autorizado" },
-        { status: 401 }
-      )
-    }
+    client = await connectToMongo();
+    const db = client.db("saas-dashboard");
     
-    const data = await request.json()
-    const { fullName, bio, location, website } = data
+    const normalizedEmail = session.user.email.toLowerCase();
+    console.log(`🔄 Atualizando configurações para: ${normalizedEmail}`);
     
-    await dbConnect()
+    const result = await db.collection("users").updateOne(
+      { email: normalizedEmail },
+      { $set: { settings: data.settings, updatedAt: new Date() } }
+    );
     
-    const updatedUser = await User.findByIdAndUpdate(
-      session.user.id,
-      { 
-        $set: { 
-          fullName, 
-          bio, 
-          location, 
-          website 
-        } 
-      },
-      { new: true }
-    ).select("-password")
-    
-    if (!updatedUser) {
+    if (result.matchedCount === 0) {
+      console.log("❌ Usuário não encontrado para atualização");
       return NextResponse.json(
         { success: false, message: "Usuário não encontrado" },
         { status: 404 }
-      )
+      );
     }
     
     return NextResponse.json({
       success: true,
-      user: {
-        _id: updatedUser._id,
-        username: updatedUser.username,
-        email: updatedUser.email,
-        fullName: updatedUser.fullName || "",
-        bio: updatedUser.bio || "",
-        avatarUrl: updatedUser.avatarUrl || "",
-        location: updatedUser.location || "",
-        website: updatedUser.website || ""
-      }
-    })
-  } catch (error: any) {
-    console.error("Erro ao atualizar perfil:", error)
+      message: "Configurações atualizadas com sucesso"
+    });
+  } catch (error) {
+    console.error("❌ Erro ao atualizar configurações:", error);
     return NextResponse.json(
-      { success: false, message: error.message || "Erro interno do servidor" },
+      { success: false, message: "Erro no servidor" },
       { status: 500 }
-    )
+    );
+  } finally {
+    if (client) await client.close();
   }
 }
 
-// POST: Alterar senha do usuário
 export async function POST(request: Request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.email) {
+    return NextResponse.json(
+      { success: false, message: "Não autorizado" },
+      { status: 401 }
+    );
+  }
+
+  let client = null;
   try {
-    const session = await getServerSession()
-    
-    if (!session || !session.user?.id) {
-      return NextResponse.json(
-        { success: false, message: "Não autorizado" },
-        { status: 401 }
-      )
-    }
-    
-    const { currentPassword, newPassword } = await request.json()
+    const { currentPassword, newPassword } = await request.json();
     
     if (!currentPassword || !newPassword) {
       return NextResponse.json(
         { success: false, message: "Todos os campos são obrigatórios" },
         { status: 400 }
-      )
+      );
     }
     
     if (newPassword.length < 6) {
       return NextResponse.json(
         { success: false, message: "A nova senha deve ter pelo menos 6 caracteres" },
         { status: 400 }
-      )
+      );
     }
     
-    await dbConnect()
+    client = await connectToMongo();
+    const db = client.db("saas-dashboard");
+    const users = db.collection("users");
     
-    // Buscar usuário com senha
-    const user = await User.findById(session.user.id).select("+password")
+    // Buscar usuário
+    const normalizedEmail = session.user.email.toLowerCase();
+    const user = await users.findOne({ email: normalizedEmail });
     
     if (!user) {
       return NextResponse.json(
         { success: false, message: "Usuário não encontrado" },
         { status: 404 }
-      )
+      );
     }
     
-    // Verificar se a senha atual está correta
-    const isMatch = await bcrypt.compare(currentPassword, user.password)
+    // Verificar senha atual
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
     
     if (!isMatch) {
       return NextResponse.json(
         { success: false, message: "Senha atual incorreta" },
         { status: 400 }
-      )
+      );
     }
     
-    // Gerar hash da nova senha
-    const salt = await bcrypt.genSalt(10)
-    const hashedPassword = await bcrypt.hash(newPassword, salt)
+    // Hash nova senha
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
     
-    // Atualizar a senha
-    await User.findByIdAndUpdate(
-      session.user.id,
-      { $set: { password: hashedPassword } }
-    )
+    // Atualizar senha (método correto do MongoDB nativo)
+    const result = await users.updateOne(
+      { _id: user._id },
+      { $set: { password: hashedPassword, updatedAt: new Date() } }
+    );
+    
+    if (result.modifiedCount === 0) {
+      return NextResponse.json(
+        { success: false, message: "Falha ao atualizar senha" },
+        { status: 500 }
+      );
+    }
     
     return NextResponse.json({
       success: true,
       message: "Senha alterada com sucesso"
-    })
+    });
   } catch (error: any) {
-    console.error("Erro ao alterar senha:", error)
+    console.error("Erro ao alterar senha:", error);
     return NextResponse.json(
       { success: false, message: error.message || "Erro interno do servidor" },
       { status: 500 }
-    )
+    );
+  } finally {
+    if (client) await client.close();
   }
+}
+
+async function dbConnect() {
+  const client = await connectToMongo();
+  return client.db("saas-dashboard");
+}
+
+// You'll also need to import bcrypt and create the getUserModel function:
+
+async function getUserModel() {
+  const client = await connectToMongo();
+  const db = client.db("saas-dashboard");
+  return db.collection("users");
 }
