@@ -10,9 +10,10 @@ interface CardProps {
 export function Card({ children, className }: CardProps) {
   return (
     <div className={cn(
-      "bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg", 
+      "bg-white dark:bg-[hsl(var(--card))] shadow overflow-hidden sm:rounded-lg", 
       className
     )}>
+    
       {children}
     </div>
   );
