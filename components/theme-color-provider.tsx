@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from "react"
 import { useSession } from 'next-auth/react'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -15,65 +15,59 @@ import { toast } from "@/components/ui/use-toast"
 import { ToastAction } from "@/components/ui/toast"
 import { Toaster } from "@/components/ui/toaster"
 
-export type ThemeColor = 'default' | 'blue' | 'green' | 'purple' | 'orange';
+export type ThemeColor = "default" | "blue" | "green" | "purple" | "orange"
 
-interface ThemeColorContextType {
+type ThemeColorContextType = {
   color: ThemeColor
   setColor: (color: ThemeColor) => void
+  ready: boolean
 }
 
 const ThemeColorContext = createContext<ThemeColorContextType | undefined>(undefined)
 
 export function ThemeColorProvider({ children }: { children: React.ReactNode }) {
-  const [color, setColorState] = useState<ThemeColor>('default')
-  const { data: session } = useSession()
+  const [color, setColorState] = useState<ThemeColor>("default")
+  const [ready, setReady] = useState(false)
+  const initialized = useRef(false)
 
-  // Carregar a cor das configurações do usuário
   useEffect(() => {
-    async function loadColorFromSettings() {
-      if (session?.user) {
-        try {
-          const res = await fetch('/api/settings')
-          const data = await res.json()
-          
-          if (data.success && data.user?.settings?.primaryColor) {
-            setColorState(data.user.settings.primaryColor as ThemeColor)
-          }
-        } catch (error) {
-          console.error('Erro ao carregar cor do tema:', error)
-        }
+    if (!initialized.current) {
+      const stored = typeof window !== "undefined" ? localStorage.getItem("theme-color") : null
+      if (stored && isValidThemeColor(stored)) {
+        setColorState(stored)
+        applyThemeClass(stored)
+      } else {
+        applyThemeClass("default")
       }
+      initialized.current = true
+      setReady(true)
     }
-    
-    loadColorFromSettings()
-  }, [session])
+  }, [])
 
-  // Função para atualizar a cor e aplicar a classe correspondente
-  const setColor = (newColor: ThemeColor) => {
+  useEffect(() => {
+    if (!ready) return
+    applyThemeClass(color)
+    if (typeof window !== "undefined") {
+      localStorage.setItem("theme-color", color)
+    }
+  }, [color, ready])
+
+  function setColor(newColor: ThemeColor) {
     setColorState(newColor)
-    
-    // Remover todas as classes de cores anteriores
-    document.documentElement.classList.remove(
-      'theme-default',
-      'theme-blue',
-      'theme-green',
-      'theme-purple',
-      'theme-orange'
-    )
-    
-    // Aplicar a nova classe de cor
-    document.documentElement.classList.add(`theme-${newColor}`)
-    
-    console.log(`Cor do tema alterada para: ${newColor}`)
   }
 
-  // Aplicar a classe de cor sempre que a cor mudar
-  useEffect(() => {
-    setColor(color)
-  }, [color])
+  function isValidThemeColor(value: string): value is ThemeColor {
+    return ["default", "blue", "green", "purple", "orange"].includes(value)
+  }
+
+  function applyThemeClass(theme: ThemeColor) {
+    const classes = ["theme-default", "theme-blue", "theme-green", "theme-purple", "theme-orange"]
+    document.documentElement.classList.remove(...classes)
+    document.documentElement.classList.add(`theme-${theme}`)
+  }
 
   return (
-    <ThemeColorContext.Provider value={{ color, setColor }}>
+    <ThemeColorContext.Provider value={{ color, setColor, ready }}>
       {children}
     </ThemeColorContext.Provider>
   )
@@ -81,11 +75,7 @@ export function ThemeColorProvider({ children }: { children: React.ReactNode }) 
 
 export function useThemeColor() {
   const context = useContext(ThemeColorContext)
-  
-  if (context === undefined) {
-    throw new Error('useThemeColor deve ser usado dentro de um ThemeColorProvider')
-  }
-  
+  if (!context) throw new Error("useThemeColor must be used within ThemeColorProvider")
   return context
 }
 
