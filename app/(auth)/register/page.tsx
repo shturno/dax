@@ -14,6 +14,7 @@ export default function RegisterPage() {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
+    name: "",
     username: "",
     email: "",
     password: "",
@@ -29,8 +30,16 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    
-    // Validar senhas
+
+    if (!formData.name.trim()) {
+      toast({
+        title: "Erro",
+        description: "O campo nome é obrigatório",
+        variant: "destructive",
+      })
+      return
+    }
+
     if (formData.password !== formData.confirmPassword) {
       toast({
         title: "Erro",
@@ -41,7 +50,7 @@ export default function RegisterPage() {
     }
 
     setLoading(true)
-    
+
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
@@ -49,6 +58,7 @@ export default function RegisterPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          name: formData.name,
           username: formData.username,
           email: formData.email,
           password: formData.password,
@@ -56,23 +66,26 @@ export default function RegisterPage() {
       })
 
       const data = await response.json()
-      
-      if (data.success) {
+
+      if (!response.ok || !data.success) {
         toast({
-          title: "Conta criada",
-          description: "Sua conta foi criada com sucesso! Redirecionando para o login...",
+          title: "Erro",
+          description: data.message || "Erro ao registrar",
+          variant: "destructive",
         })
-        // Redirecionar para a página de login após 2 segundos
-        setTimeout(() => {
-          router.push('/login')
-        }, 2000)
-      } else {
-        throw new Error(data.message || "Erro ao criar conta")
+        setLoading(false)
+        return
       }
-    } catch (error: any) {
+
+      toast({
+        title: "Conta criada com sucesso",
+        description: "Você já pode fazer login",
+      })
+      router.push("/login")
+    } catch {
       toast({
         title: "Erro",
-        description: error.message || "Ocorreu um erro durante o registro",
+        description: "Erro ao registrar usuário",
         variant: "destructive",
       })
     } finally {
@@ -81,78 +94,92 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
+    <div className="flex min-h-screen items-center justify-center bg-background">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Criar uma conta</CardTitle>
-          <CardDescription>
-            Preencha os campos abaixo para criar sua conta
-          </CardDescription>
+        <CardHeader>
+          <CardTitle>Criar Conta</CardTitle>
+          <CardDescription>Preencha os campos para criar sua conta</CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Nome de usuário</Label>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="name">Nome</Label>
+              <Input
+                id="name"
+                name="name"
+                type="text"
+                autoComplete="name"
+                required
+                value={formData.name}
+                onChange={handleChange}
+                disabled={loading}
+              />
+            </div>
+            <div>
+              <Label htmlFor="username">Usuário</Label>
               <Input
                 id="username"
                 name="username"
-                placeholder="Seu nome de usuário"
+                type="text"
+                autoComplete="username"
+                required
                 value={formData.username}
                 onChange={handleChange}
-                required
+                disabled={loading}
               />
             </div>
-            <div className="space-y-2">
+            <div>
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                placeholder="seu@email.com"
+                autoComplete="email"
+                required
                 value={formData.email}
                 onChange={handleChange}
-                required
+                disabled={loading}
               />
             </div>
-            <div className="space-y-2">
+            <div>
               <Label htmlFor="password">Senha</Label>
               <Input
                 id="password"
                 name="password"
                 type="password"
-                placeholder="Sua senha"
+                autoComplete="new-password"
+                required
                 value={formData.password}
                 onChange={handleChange}
-                required
-                minLength={6}
+                disabled={loading}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirmar senha</Label>
+            <div>
+              <Label htmlFor="confirmPassword">Confirmar Senha</Label>
               <Input
                 id="confirmPassword"
                 name="confirmPassword"
                 type="password"
-                placeholder="Confirme sua senha"
+                autoComplete="new-password"
+                required
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                required
-                minLength={6}
+                disabled={loading}
               />
             </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Registrando..." : "Registrar"}
+              {loading ? "Criando conta..." : "Criar Conta"}
             </Button>
-            <div className="text-center text-sm">
-              Já tem uma conta?{" "}
-              <Link href="/login" className="text-primary hover:underline">
-                Faça login
-              </Link>
-            </div>
-          </CardFooter>
-        </form>
+          </form>
+        </CardContent>
+        <CardFooter className="flex flex-col gap-2">
+          <span className="text-sm text-muted-foreground">
+            Já tem uma conta?{" "}
+            <Link href="/login" className="underline">
+              Entrar
+            </Link>
+          </span>
+        </CardFooter>
       </Card>
     </div>
   )

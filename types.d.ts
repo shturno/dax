@@ -11,3 +11,5 @@ declare module "cookie" {
     signed?: boolean;
   }
 }
+
+import { DefaultSession } from "next-auth"

@@ -1,4 +1,20 @@
 import mongoose from 'mongoose';
+import { ObjectId } from "mongodb"
+
+export type ProjectData = {
+  _id?: ObjectId
+  userId: ObjectId | string
+  name: string
+  description: string
+  tasks: string[]
+  notes: string[]
+  roadmap: string[]
+  features: string[]
+  ideas: string[]
+  feedback: string[]
+  createdAt?: Date
+  updatedAt?: Date
+}
 
 const projectSchema = new mongoose.Schema({
   name: {

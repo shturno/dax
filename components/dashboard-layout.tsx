@@ -158,7 +158,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <div className="flex h-full flex-col">
           <div className="flex h-14 items-center border-b px-4">
             <Link href="/" className="flex items-center gap-2 font-semibold">
-              <span>Dashor</span>
+              <span>Dax</span>
             </Link>
             <Button variant="ghost" size="icon" className="ml-auto md:hidden" onClick={() => setSidebarOpen(false)}>
               <X className="h-5 w-5" />
@@ -219,19 +219,28 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <Button variant="ghost" size="icon" className="md:hidden" onClick={toggleTheme}>
               {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
-            
-            {/* Dropdown do usuário */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2 px-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="" alt={session?.user?.name || "Usuário"} />
+                    <AvatarImage src="" alt={
+                      session?.user?.name
+                        ? session.user.name
+                        : session?.user?.username
+                        ? session.user.username
+                        : "Usuário"
+                    } />
                     <AvatarFallback className="bg-primary/10 text-primary">
-                      {session?.user?.name ? session.user.name.substring(0, 2).toUpperCase() : "U"}
+                      {(session?.user?.name && session.user.name.substring(0, 2).toUpperCase()) ||
+                        (session?.user?.username && session.user.username.substring(0, 2).toUpperCase()) ||
+                        "U"}
                     </AvatarFallback>
                   </Avatar>
                   <span className="hidden md:inline text-sm font-medium">
-                    {session?.user?.name || session?.user?.email?.split('@')[0] || "Usuário"}
+                    {session?.user?.name ||
+                      session?.user?.username ||
+                      session?.user?.email?.split("@")[0] ||
+                      "Usuário"}
                   </span>
                 </Button>
               </DropdownMenuTrigger>

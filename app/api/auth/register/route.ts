@@ -9,14 +9,15 @@ export async function POST(request: Request) {
     const requestText = await request.text();
     console.log("🔍 Request bruto:", requestText);
     
-    const { username, email, password } = JSON.parse(requestText);
-    const normalizedEmail = email.toLowerCase();
+    const body = JSON.parse(requestText);
+    const normalizedEmail = body.email.toLowerCase();
+    const username = body.username?.trim() || body.email.split("@")[0];
     
     console.log("👤 Usuário:", username);
     console.log("📧 Email normalizado:", normalizedEmail);
-    console.log("🔢 Comprimento da senha:", password.length);
+    console.log("🔢 Comprimento da senha:", body.password.length);
     
-    if (!normalizedEmail || !password) {
+    if (!normalizedEmail || !body.password) {
       return NextResponse.json(
         { success: false, message: "Email e senha são obrigatórios" },
         { status: 400 }
@@ -41,9 +42,9 @@ export async function POST(request: Request) {
 
     // hash da senha
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(body.password, salt);
     
-    console.log("🔐 Senha que será hasheada:", password);
+    console.log("🔐 Senha que será hasheada:", body.password);
     console.log("🔐 Hash gerado:", hashedPassword);
 
     const result = await db.collection("users").insertOne({

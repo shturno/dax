@@ -60,7 +60,8 @@ export const authOptions: NextAuthOptions = {
           return {
             id: user._id.toString(),
             name: user.username || user.email.split('@')[0],
-            email: user.email
+            email: user.email,
+            username: user.username || undefined
           };
         } catch (error) {
           console.error("❌ Erro na autenticação:", error);
@@ -70,14 +71,20 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   session: { strategy: "jwt" },
-  pages: { signIn: "/login" },
   callbacks: {
-    async session({ session, token }) {
-      if (token?.sub && session.user) {
-        session.user.id = token.sub;
+    jwt: async ({ token, user }) => {
+      if (user) {
+        token.id = user.id;
+        token.username = user.username; 
       }
-      return session;
+      return token;
     },
+    session: ({ session, token }) => {
+      session.user.id = token.id as string;
+      session.user.username = token.username as string;
+      return session;
+    }
   },
+
   secret: process.env.NEXTAUTH_SECRET!,
 };

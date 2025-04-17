@@ -4,7 +4,6 @@ import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import ThemeToggle from "@/components/theme-toggle";
 
 export default function EditProfilePage() {
   const { data: session, status } = useSession();
@@ -167,9 +166,7 @@ export default function EditProfilePage() {
       <header className="bg-[#000] border-b border-zinc-800">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-white">Editar Perfil</h1>
-          
           <div className="flex items-center space-x-4">
-            <ThemeToggle />
             <Link 
               href="/profile" 
               className="inline-flex items-center px-4 py-2 border border-zinc-800 rounded-md text-sm font-medium text-white bg-zinc-900 hover:bg-zinc-800"
@@ -365,7 +362,7 @@ export default function EditProfilePage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className={`inline-flex items-center justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${loading ? 'bg-blue-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
+                    className="inline-flex items-center justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {loading ? (
                       <>

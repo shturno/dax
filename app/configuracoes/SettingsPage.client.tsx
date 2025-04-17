@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,7 +13,7 @@ import { ToastAction } from "@/components/ui/toast"
 import { Toaster } from "@/components/ui/toaster"
 import { useThemeColor, ThemeColor } from "@/components/theme-color-provider"
 
-export default function SettingsPage() {
+export function SettingsPage() {
   const { theme, setTheme } = useTheme()
   const { status } = useSession()
   const { color, setColor, ready } = useThemeColor()

@@ -2,6 +2,7 @@ import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { MongoClient } from "mongodb";
+import { Session } from "next-auth";
 
 const MONGODB_URI = process.env.MONGODB_URI!;
 
@@ -57,7 +58,8 @@ export const authOptions: NextAuthOptions = {
           return {
             id: user._id.toString(),
             name: user.username || user.email.split("@")[0],
-            email: user.email
+            email: user.email,
+            username: user.username || user.email.split("@")[0], // <-- aqui!
           };
         } catch (error) {
           console.error("❌ Erro na autenticação:", error);
@@ -71,12 +73,26 @@ export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
   callbacks: {
-    async session({ session, token }) {
-      if (token?.sub && session.user) {
-        session.user.id = token.sub;
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id
+        if ('username' in user) token.username = user.username
       }
-      return session;
+      return token
     },
+    async session({ session, token }) {
+      return {
+        ...session,
+        user: {
+          id: token.id as string,
+          username: token.username as string | undefined,
+          name: token.name as string | undefined,
+          email: token.email as string | undefined,
+          image: token.image as string | undefined,
+        },
+      }
+    },
+  
   },
   secret: process.env.NEXTAUTH_SECRET!,
 };

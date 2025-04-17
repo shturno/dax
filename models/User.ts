@@ -4,6 +4,7 @@ import dbConnect from '@/lib/mongodb';
 
 // Interface para tipar os métodos de instância
 interface UserDocument extends mongoose.Document {
+  name: string;
   username: string;
   email: string;
   password: string;
