@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 
 export async function POST(request: Request) {
   let client = null;
@@ -17,9 +17,9 @@ export async function POST(request: Request) {
     console.log("📧 Email normalizado:", normalizedEmail);
     console.log("🔢 Comprimento da senha:", body.password.length);
     
-    if (!normalizedEmail || !body.password) {
+    if (!normalizedEmail || !body.password || !body.projectName) {
       return NextResponse.json(
-        { success: false, message: "Email e senha são obrigatórios" },
+        { success: false, message: "Email, senha e nome do projeto são obrigatórios" },
         { status: 400 }
       );
     }
@@ -47,27 +47,45 @@ export async function POST(request: Request) {
     console.log("🔐 Senha que será hasheada:", body.password);
     console.log("🔐 Hash gerado:", hashedPassword);
 
-    const result = await db.collection("users").insertOne({
+    // Criar o usuário
+    const userResult = await db.collection("users").insertOne({
       username,
       email: normalizedEmail,
       password: hashedPassword,
-      settings: {
-        projectName: "Meu Projeto",
-        projectDescription: "Minha descrição",
-        notifications: true,
-        autoSave: true,
-        autoSaveInterval: 5,
-        fontSize: 16,
-        primaryColor: "default"
-      },
       createdAt: new Date(),
       updatedAt: new Date()
     });
 
-    console.log("✅ Usuário registrado com sucesso:", normalizedEmail);
+    const userId = userResult.insertedId;
+
+    // Criar o projeto
+    const projectResult = await db.collection("projects").insertOne({
+      ownerId: new ObjectId(userId),
+      name: body.projectName,
+      description: body.projectDescription || "",
+      objective: body.projectObjective || "",
+      tasks: [],
+      notes: [],
+      roadmap: [],
+      features: [],
+      ideas: [],
+      feedback: [],
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+
+    console.log("✅ Usuário e projeto registrados com sucesso:", {
+      userId: userId.toString(),
+      projectId: projectResult.insertedId.toString(),
+      projectName: body.projectName
+    });
     
     return NextResponse.json(
-      { success: true, userId: result.insertedId.toString() },
+      { 
+        success: true, 
+        userId: userId.toString(),
+        projectId: projectResult.insertedId.toString()
+      },
       { status: 201 }
     );
   } catch (error) {

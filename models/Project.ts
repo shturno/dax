@@ -3,7 +3,7 @@ import { ObjectId } from "mongodb"
 
 export type ProjectData = {
   _id?: ObjectId
-  userId: ObjectId | string
+  ownerId: ObjectId | string
   name: string
   description: string
   tasks: string[]
@@ -12,11 +12,20 @@ export type ProjectData = {
   features: string[]
   ideas: string[]
   feedback: string[]
+  collaborators?: ObjectId[]
+  isPublic?: boolean
+  tags?: string[]
+  settings?: Record<string, any>
   createdAt?: Date
   updatedAt?: Date
 }
 
 const projectSchema = new mongoose.Schema({
+  ownerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: [true, 'Projeto deve ter um dono']
+  },
   name: {
     type: String,
     required: [true, 'Nome do projeto é obrigatório'],
@@ -25,11 +34,6 @@ const projectSchema = new mongoose.Schema({
   description: {
     type: String,
     default: ''
-  },
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: [true, 'Projeto deve estar associado a um usuário']
   },
   collaborators: [{
     type: mongoose.Schema.Types.ObjectId,
@@ -43,7 +47,12 @@ const projectSchema = new mongoose.Schema({
     type: String,
     trim: true
   }],
-  // Dados de configuração específicos do projeto
+  tasks: [String],
+  notes: [String],
+  roadmap: [String],
+  features: [String],
+  ideas: [String],
+  feedback: [String],
   settings: {
     type: Object,
     default: {}
@@ -51,6 +60,11 @@ const projectSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+// Índices para melhor performance
+projectSchema.index({ ownerId: 1 });
+projectSchema.index({ name: 1 });
+projectSchema.index({ isPublic: 1 });
 
 const Project = mongoose.models.Project || mongoose.model('Project', projectSchema);
 

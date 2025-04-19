@@ -8,15 +8,14 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
 import { Loader2 } from "lucide-react"
-import Link from "next/link"
 
-export default function LoginPage() {
+export default function FirstProjectPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    email: "",
-    password: ""
+    name: "",
+    description: ""
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,14 +30,14 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/projects', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
+          name: formData.name,
+          description: formData.description,
         }),
       })
 
@@ -47,36 +46,23 @@ export default function LoginPage() {
       if (!response.ok || !data.success) {
         toast({
           title: "Erro",
-          description: data.message || "Erro ao fazer login",
+          description: data.message || "Erro ao criar projeto",
           variant: "destructive",
         })
         setLoading(false)
         return
       }
 
-      // Verificar se o usuário tem projetos
-      const projectsResponse = await fetch('/api/projects')
-      const projectsData = await projectsResponse.json()
+      toast({
+        title: "Sucesso",
+        description: "Projeto criado com sucesso!",
+      })
 
-      if (!projectsResponse.ok || !projectsData.success) {
-        toast({
-          title: "Erro",
-          description: "Erro ao verificar projetos",
-          variant: "destructive",
-        })
-        setLoading(false)
-        return
-      }
-
-      if (projectsData.projects.length === 0) {
-        router.push("/first-project")
-      } else {
-        router.push("/dashboard")
-      }
+      router.push("/dashboard")
     } catch {
       toast({
         title: "Erro",
-        description: "Erro ao fazer login",
+        description: "Erro ao criar projeto",
         variant: "destructive",
       })
     } finally {
@@ -88,49 +74,42 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Login</CardTitle>
-          <CardDescription>Entre com suas credenciais</CardDescription>
+          <CardTitle>Criar Primeiro Projeto</CardTitle>
+          <CardDescription>Configure seu primeiro projeto</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="name">Nome do Projeto</Label>
               <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
+                id="name"
+                name="name"
+                type="text"
+                value={formData.name}
                 onChange={handleChange}
                 required
-                placeholder="seu@email.com"
+                placeholder="Meu Projeto"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
+              <Label htmlFor="description">Descrição</Label>
               <Input
-                id="password"
-                name="password"
-                type="password"
-                value={formData.password}
+                id="description"
+                name="description"
+                type="text"
+                value={formData.description}
                 onChange={handleChange}
-                required
-                placeholder="••••••••"
+                placeholder="Uma breve descrição do seu projeto"
               />
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
+          <CardFooter>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Entrando..." : "Entrar"}
+              {loading ? "Criando..." : "Criar Projeto"}
             </Button>
-            <p className="text-sm text-muted-foreground text-center">
-              Não tem uma conta?{" "}
-              <Link href="/register" className="text-primary hover:underline">
-                Criar conta
-              </Link>
-            </p>
           </CardFooter>
         </form>
       </Card>
     </div>
   )
-}
+} 

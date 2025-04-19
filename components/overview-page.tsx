@@ -4,48 +4,141 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { Activity, ArrowUp, Clock, Code, Zap } from "lucide-react"
+import { Activity, ArrowUp, Clock, Code, Zap, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-export function OverviewPage() {
-  const [progress, setProgress] = useState(40)
-  const [lastUpdate, setLastUpdate] = useState("2 horas")
-  const [projectInfo, setProjectInfo] = useState({
-    name: "AI Editor",
-    description: "Editor com IA acessado via navegador",
-  })
+// Definir um tipo para o objeto do projeto, baseado na API
+interface Project {
+  _id: string;
+  name: string;
+  description?: string;
+  ownerId: string;
+  createdAt: string;
+  updatedAt: string;
+  tasks?: any[];
+  notes?: any[];
+  roadmap?: any[];
+  features?: any[];
+  ideas?: any[];
+  feedback?: any[];
+}
 
-  // Carregar configurações do localStorage
+export function OverviewPage() {
+  const [projects, setProjects] = useState<Project[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Estados que eram fixos ou simulados - podem ser removidos ou derivados dos dados reais
+  // const [progress, setProgress] = useState(40) 
+  // const [lastUpdate, setLastUpdate] = useState("2 horas")
+
   useEffect(() => {
-    const savedSettings = localStorage.getItem("settings")
-    if (savedSettings) {
+    const fetchProjects = async () => {
+      setIsLoading(true)
+      setError(null)
       try {
-        const settings = JSON.parse(savedSettings)
-        if (settings.projectName && settings.projectDescription) {
-          setProjectInfo({
-            name: settings.projectName,
-            description: settings.projectDescription,
-          })
+        const response = await fetch("/api/projects", {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          if (response.status === 404) {
+            setProjects([])
+            return
+          }
+          throw new Error(errorData.error || "Falha ao buscar projetos")
         }
-      } catch (e) {
-        console.error("Erro ao carregar configurações:", e)
+
+        const data = await response.json()
+        console.log("Dados recebidos da API:", data)
+        
+        if (data.success && data.project) {
+          setProjects([data.project])
+        } else if (data.projects) {
+          setProjects(data.projects)
+        } else {
+          setProjects([])
+        }
+      } catch (err: any) {
+        console.error("Erro ao buscar projetos:", err)
+        setError(err.message || "Erro ao carregar projetos")
+        setProjects([])
+      } finally {
+        setIsLoading(false)
       }
+    }
+
+    fetchProjects()
+
+    // Adicionar listener para atualização do projeto
+    const handleProjectUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent<{ project: any }>
+      console.log("Evento de atualização do projeto recebido:", customEvent.detail)
+      if (customEvent.detail?.project) {
+        setProjects(prevProjects => {
+          const updatedProjects = prevProjects.map(project => 
+            project._id === customEvent.detail.project._id ? customEvent.detail.project : project
+          )
+          return updatedProjects
+        })
+      } else {
+        fetchProjects()
+      }
+    }
+
+    window.addEventListener('projectUpdated', handleProjectUpdate)
+
+    // Limpar listener ao desmontar
+    return () => {
+      window.removeEventListener('projectUpdated', handleProjectUpdate)
     }
   }, [])
 
-  // Simular progresso aumentando
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (progress < 100) {
-        setProgress((prev) => Math.min(prev + 1, 100))
-        setLastUpdate("agora mesmo")
-      }
-    }, 10000)
+  // Seleciona o primeiro projeto para exibição (ou null se não houver projetos)
+  const currentProject = projects.length > 0 ? projects[0] : null
 
-    return () => clearTimeout(timer)
-  }, [progress])
+  // Simular progresso e última atualização (pode ser substituído por dados reais do projeto se disponíveis)
+  const progress = currentProject ? 65 : 0 // Exemplo
+  const lastUpdate = currentProject ? new Date(currentProject.updatedAt).toLocaleTimeString() : "N/A" // Exemplo
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <p className="ml-2 text-muted-foreground">Carregando projetos...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="text-center text-red-600 bg-red-100 border border-red-400 p-4 rounded-md">
+        <p>Erro ao carregar projetos: {error}</p>
+        <Button onClick={() => window.location.reload()} variant="destructive" size="sm" className="mt-2">
+          Tentar Novamente
+        </Button>
+      </div>
+    )
+  }
+
+  if (!currentProject) {
+    return (
+      <div className="text-center py-10">
+        <h2 className="text-xl font-semibold mb-2">Nenhum projeto encontrado</h2>
+        <p className="text-muted-foreground mb-4">Parece que você ainda não criou nenhum projeto.</p>
+        <Link href="/projects/new">
+          <Button>Criar Primeiro Projeto</Button>
+        </Link>
+      </div>
+    )
+  }
+
+  // Renderiza a visão geral com os dados do currentProject
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -55,8 +148,8 @@ export function OverviewPage() {
             <Code className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{projectInfo.name}</div>
-            <p className="text-xs text-muted-foreground">{projectInfo.description}</p>
+            <div className="text-2xl font-bold">{currentProject.name}</div>
+            <p className="text-xs text-muted-foreground">{currentProject.description || "Sem descrição"}</p>
           </CardContent>
         </Card>
         <Card>
@@ -66,9 +159,9 @@ export function OverviewPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-2">
-              <Badge className="bg-amber-500 hover:bg-amber-600">MVP</Badge>
+              <Badge className="bg-blue-500 hover:bg-blue-600">Em Andamento</Badge>
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">Fase de desenvolvimento do MVP</p>
+            <p className="mt-2 text-xs text-muted-foreground">Fase atual do projeto</p>
           </CardContent>
         </Card>
         <Card>
@@ -88,7 +181,7 @@ export function OverviewPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">Ativa</div>
-            <p className="text-xs text-muted-foreground">Última atualização há {lastUpdate}</p>
+            <p className="text-xs text-muted-foreground">Última atualização às {lastUpdate}</p>
           </CardContent>
         </Card>
       </div>
@@ -97,7 +190,7 @@ export function OverviewPage() {
         <Card className="col-span-4">
           <CardHeader>
             <CardTitle>Últimas Atualizações</CardTitle>
-            <CardDescription>Atualizações recentes do projeto</CardDescription>
+            <CardDescription>Atualizações recentes do projeto {currentProject.name}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -138,7 +231,7 @@ export function OverviewPage() {
         <Card className="col-span-3">
           <CardHeader>
             <CardTitle>Próximos Passos</CardTitle>
-            <CardDescription>Tarefas prioritárias para o desenvolvimento</CardDescription>
+            <CardDescription>Tarefas prioritárias para o projeto {currentProject.name}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">

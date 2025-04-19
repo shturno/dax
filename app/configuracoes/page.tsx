@@ -1,14 +1,14 @@
 "use client"
 
 import { DashboardLayout } from "@/components/dashboard-layout"
-import SettingsPage from "@/components/settings-page"
-import { ThemeColorProvider } from "@/components/theme-color-provider" // Adicione esta importação
+import { ProjectSettingsPage } from "./ProjectSettingsPage.client"
+import { ThemeColorProvider } from "@/components/theme-color-provider"
 
 export default function SettingsRoute() {
   return (
     <DashboardLayout>
       <ThemeColorProvider>
-        <SettingsPage />
+        <ProjectSettingsPage />
       </ThemeColorProvider>
     </DashboardLayout>
   )

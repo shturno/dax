@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
+import { Loader2 } from "lucide-react"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -18,7 +19,7 @@ export default function RegisterPage() {
     username: "",
     email: "",
     password: "",
-    confirmPassword: "",
+    confirmPassword: ""
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,7 +62,7 @@ export default function RegisterPage() {
           name: formData.name,
           username: formData.username,
           email: formData.email,
-          password: formData.password,
+          password: formData.password
         }),
       })
 
@@ -70,7 +71,7 @@ export default function RegisterPage() {
       if (!response.ok || !data.success) {
         toast({
           title: "Erro",
-          description: data.message || "Erro ao registrar",
+          description: data.message || "Erro ao criar conta",
           variant: "destructive",
         })
         setLoading(false)
@@ -79,13 +80,13 @@ export default function RegisterPage() {
 
       toast({
         title: "Conta criada com sucesso",
-        description: "Você já pode fazer login",
+        description: "Você será redirecionado para criar seu primeiro projeto",
       })
-      router.push("/login")
+      router.push("/first-project")
     } catch {
       toast({
         title: "Erro",
-        description: "Erro ao registrar usuário",
+        description: "Erro ao criar conta",
         variant: "destructive",
       })
     } finally {
@@ -98,88 +99,81 @@ export default function RegisterPage() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Criar Conta</CardTitle>
-          <CardDescription>Preencha os campos para criar sua conta</CardDescription>
+          <CardDescription>Preencha os dados para criar sua conta</CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="name">Nome</Label>
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nome Completo</Label>
               <Input
                 id="name"
                 name="name"
-                type="text"
-                autoComplete="name"
-                required
                 value={formData.name}
                 onChange={handleChange}
-                disabled={loading}
+                required
+                placeholder="Seu nome completo"
               />
             </div>
-            <div>
-              <Label htmlFor="username">Usuário</Label>
+            <div className="space-y-2">
+              <Label htmlFor="username">Nome de Usuário</Label>
               <Input
                 id="username"
                 name="username"
-                type="text"
-                autoComplete="username"
-                required
                 value={formData.username}
                 onChange={handleChange}
-                disabled={loading}
+                required
+                placeholder="seu_usuario"
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                autoComplete="email"
-                required
                 value={formData.email}
                 onChange={handleChange}
-                disabled={loading}
+                required
+                placeholder="seu@email.com"
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
               <Input
                 id="password"
                 name="password"
                 type="password"
-                autoComplete="new-password"
-                required
                 value={formData.password}
                 onChange={handleChange}
-                disabled={loading}
+                required
+                placeholder="••••••••"
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirmar Senha</Label>
               <Input
                 id="confirmPassword"
                 name="confirmPassword"
                 type="password"
-                autoComplete="new-password"
-                required
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                disabled={loading}
+                required
+                placeholder="••••••••"
               />
             </div>
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Criando conta..." : "Criar Conta"}
             </Button>
-          </form>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-2">
-          <span className="text-sm text-muted-foreground">
-            Já tem uma conta?{" "}
-            <Link href="/login" className="underline">
-              Entrar
-            </Link>
-          </span>
-        </CardFooter>
+            <p className="text-sm text-muted-foreground text-center">
+              Já tem uma conta?{" "}
+              <Link href="/login" className="text-primary hover:underline">
+                Faça login
+              </Link>
+            </p>
+          </CardFooter>
+        </form>
       </Card>
     </div>
   )

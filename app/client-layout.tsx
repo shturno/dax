@@ -9,8 +9,8 @@ import { Providers } from "@/components/providers"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "AI Editor Dashboard",
-  description: "Project management dashboard for AI-powered browser editor",
+  title: "Dashboard",
+  description: "Project management dashboard",
   generator: 'v0.dev'
 }
 

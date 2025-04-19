@@ -20,6 +20,7 @@ import {
   Moon,
   Sun,
   Settings,
+  PlusCircle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useTheme } from "next-themes"
@@ -216,6 +217,15 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </h1>
           </div>
           <div className="ml-auto flex items-center gap-2">
+            {/* Botão Criar Novo Projeto */}
+            <Link href="/projects/new" passHref>
+              <Button variant="outline" size="sm" className="flex items-center gap-1">
+                <PlusCircle className="h-4 w-4" />
+                <span>Criar Projeto</span>
+              </Button>
+            </Link>
+            {/* Fim do Botão Criar Novo Projeto */}
+
             <Button variant="ghost" size="icon" className="md:hidden" onClick={toggleTheme}>
               {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
