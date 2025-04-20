@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/components/ui/use-toast"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
+import { signIn } from "next-auth/react"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -20,63 +21,94 @@ export default function LoginPage() {
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    })
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value.trim()
+    }))
+  }
+
+  const validateForm = () => {
+    if (!formData.email) {
+      toast({
+        title: "Erro",
+        description: "O email é obrigatório",
+        variant: "destructive",
+      })
+      return false
+    }
+
+    if (!formData.password) {
+      toast({
+        title: "Erro",
+        description: "A senha é obrigatória",
+        variant: "destructive",
+      })
+      return false
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      toast({
+        title: "Erro",
+        description: "Email inválido",
+        variant: "destructive",
+      })
+      return false
+    }
+
+    return true
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    
+    if (!validateForm()) return
+    
     setLoading(true)
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
+      const result = await signIn("credentials", {
+        email: formData.email.toLowerCase(),
+        password: formData.password,
+        redirect: false
       })
 
-      const data = await response.json()
-
-      if (!response.ok || !data.success) {
+      if (!result?.ok) {
         toast({
           title: "Erro",
-          description: data.message || "Erro ao fazer login",
+          description: result?.error || "Email ou senha incorretos",
           variant: "destructive",
         })
-        setLoading(false)
         return
       }
 
       // Verificar se o usuário tem projetos
       const projectsResponse = await fetch('/api/projects')
+      
+      if (!projectsResponse.ok) {
+        throw new Error("Erro ao verificar projetos")
+      }
+
       const projectsData = await projectsResponse.json()
 
-      if (!projectsResponse.ok || !projectsData.success) {
+      if (!projectsData.success) {
         toast({
           title: "Erro",
-          description: "Erro ao verificar projetos",
+          description: projectsData.message || "Erro ao verificar projetos",
           variant: "destructive",
         })
-        setLoading(false)
         return
       }
 
-      if (projectsData.projects.length === 0) {
-        router.push("/first-project")
-      } else {
-        router.push("/dashboard")
-      }
-    } catch {
+      // Redirecionar baseado na existência de projetos
+      const redirectPath = projectsData.projects.length === 0 ? "/first-project" : "/dashboard"
+      router.push(redirectPath)
+      
+    } catch (error) {
+      console.error("Erro no login:", error)
       toast({
         title: "Erro",
-        description: "Erro ao fazer login",
+        description: error instanceof Error ? error.message : "Erro ao fazer login",
         variant: "destructive",
       })
     } finally {
@@ -103,6 +135,8 @@ export default function LoginPage() {
                 onChange={handleChange}
                 required
                 placeholder="seu@email.com"
+                disabled={loading}
+                autoComplete="email"
               />
             </div>
             <div className="space-y-2">
@@ -115,16 +149,30 @@ export default function LoginPage() {
                 onChange={handleChange}
                 required
                 placeholder="••••••••"
+                disabled={loading}
+                autoComplete="current-password"
               />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Entrando..." : "Entrar"}
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Entrando...
+                </>
+              ) : "Entrar"}
             </Button>
             <p className="text-sm text-muted-foreground text-center">
               Não tem uma conta?{" "}
-              <Link href="/register" className="text-primary hover:underline">
+              <Link 
+                href="/register" 
+                className="text-primary hover:underline"
+              >
                 Criar conta
               </Link>
             </p>

@@ -39,6 +39,7 @@ export default function SettingsComponent() {
             <p className="text-sm text-gray-400">Receber notificações do sistema</p>
           </div>
           <button
+            aria-label="Alternar Notificações"
             onClick={() => handleToggleSetting("notifications")}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
               settings.notifications ? "bg-blue-600" : "bg-zinc-700"
@@ -79,6 +80,7 @@ export default function SettingsComponent() {
             <p className="text-sm text-gray-400">Selecionar idioma da interface</p>
           </div>
           <select
+            aria-label="Selecionar Idioma"
             value={settings.language}
             onChange={(e) => handleSelectChange("language", e.target.value)}
             className="bg-zinc-800 border border-zinc-700 rounded-md text-white py-1 px-3 text-sm"
