@@ -250,7 +250,7 @@ export function ProjectSettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-full" data-testid="loading-spinner">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     )

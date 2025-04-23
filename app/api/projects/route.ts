@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { logger } from "@/utils/logger"
-import { MongoClient, ObjectId } from "mongodb"
-import { connectToDatabase } from "@/app/config/mongodb"
+import { getCurrentProject } from "./projects-service"
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -20,33 +19,12 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    logger.info("Buscando projeto atual do usuário", { userId: session.user.id })
+    const result = await getCurrentProject(session.user.id)
 
-    const { db } = await connectToDatabase()
-    
-    const project = await db.collection("projects")
-      .findOne(
-        { ownerId: new ObjectId(session.user.id) },
-        { sort: { createdAt: -1 } }
-      )
-
-    if (!project) {
-      logger.warn("Nenhum projeto encontrado para o usuário", { userId: session.user.id })
-      return NextResponse.json(
-        { error: "Nenhum projeto encontrado" },
-        { status: 404 }
-      )
-    }
-
-    logger.info("Projeto encontrado com sucesso", { 
-      projectId: project._id,
-      name: project.name
-    })
-
-    return NextResponse.json({
-      success: true,
-      project
-    })
+    return NextResponse.json(
+      { success: result.success, project: result.project, error: result.error },
+      { status: result.statusCode }
+    )
 
   } catch (error) {
     logger.error("Erro ao buscar projeto atual", { 
@@ -70,49 +48,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
     }
 
-    logger.info("Iniciando criação de novo projeto", { userId: session.user.id })
-
-    const { db } = await connectToDatabase()
     const body = await req.json()
+    const { createProject } = await import("./projects-service")
     
-    if (!body.name) {
-      logger.warn("Tentativa de criar projeto sem nome")
-      return NextResponse.json(
-        { error: "Nome do projeto é obrigatório" },
-        { status: 400 }
-      )
-    }
+    const result = await createProject(session.user.id, body)
 
-    const project = {
-      ownerId: new ObjectId(session.user.id),
-      name: body.name,
-      description: body.description || "",
-      tasks: body.tasks || [],
-      notes: body.notes || [],
-      roadmap: body.roadmap || [],
-      features: body.features || [],
-      ideas: body.ideas || [],
-      feedback: body.feedback || [],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-
-    logger.info("Criando novo projeto", { 
-      userId: session.user.id,
-      projectName: project.name
-    })
-
-    const result = await db.collection("projects").insertOne(project)
-    
-    logger.info("Projeto criado com sucesso", { 
-      projectId: result.insertedId,
-      projectName: project.name
-    })
-
-    return NextResponse.json({ 
-      success: true,
-      project: { ...project, _id: result.insertedId } 
-    })
+    return NextResponse.json(
+      { success: result.success, project: result.project, error: result.error },
+      { status: result.statusCode }
+    )
   } catch (error) {
     logger.error("Erro ao criar projeto", { 
       error: error instanceof Error ? error.stack : error,
@@ -132,29 +76,15 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
     }
     
-    const { db } = await connectToDatabase()
     const body = await req.json()
+    const { updateProject } = await import("./projects-service")
     
-    if (!body._id) {
-      return NextResponse.json({ error: "ID do projeto é obrigatório" }, { status: 400 })
-    }
+    const result = await updateProject(session.user.id, body)
 
-    const updateData = {
-      name: body.name,
-      description: body.description,
-      updatedAt: new Date()
-    }
-
-    const result = await db.collection("projects").updateOne(
-      { _id: new ObjectId(body._id), ownerId: new ObjectId(session.user.id) },
-      { $set: updateData }
+    return NextResponse.json(
+      { success: result.success, project: result.project, error: result.error },
+      { status: result.statusCode }
     )
-
-    if (result.matchedCount === 0) {
-      return NextResponse.json({ error: "Projeto não encontrado" }, { status: 404 })
-    }
-
-    return NextResponse.json({ success: true, project: { ...updateData, _id: body._id } })
   } catch (error) {
     logger.error("Erro ao atualizar projeto", { 
       error: error instanceof Error ? error.stack : error,
