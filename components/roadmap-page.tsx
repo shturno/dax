@@ -243,7 +243,7 @@ export function RoadmapPage() {
                   <div className="h-2.5 w-2.5 rounded-full bg-current" />
                 </div>
                 <div className="flex-grow">
-                  <Card>
+                  <Card data-testid="roadmap-card">
                     <CardHeader className="p-4 pb-2">
                       <div className="flex items-start justify-between">
                         <div>
@@ -286,7 +286,7 @@ export function RoadmapPage() {
               <h3 className="mb-4 text-xl font-bold">{year}</h3>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 {quarters.map((quarter) => (
-                  <Card key={quarter} className="h-full">
+                  <Card key={quarter} data-testid="roadmap-card" className="h-full">
                     <CardHeader>
                       <CardTitle className="text-lg">{quarter}</CardTitle>
                     </CardHeader>

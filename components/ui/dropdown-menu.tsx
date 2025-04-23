@@ -6,7 +6,14 @@ import { Check, ChevronRight, Circle } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-const DropdownMenu = DropdownMenuPrimitive.Root
+const isTestEnv = process.env.NODE_ENV === "test"
+
+type DropdownMenuProps = React.PropsWithChildren<React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Root>>
+const DropdownMenu: React.FC<DropdownMenuProps> = ({ children, ...props }) => (
+  <DropdownMenuPrimitive.Root defaultOpen={isTestEnv} {...props}>
+    {children}
+  </DropdownMenuPrimitive.Root>
+)
 
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger
 

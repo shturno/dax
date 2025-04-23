@@ -217,6 +217,7 @@ export function NotesPage() {
           {filteredNotes.map((note) => (
             <Card
               key={note.id}
+              data-testid="note-card"
               className={`cursor-pointer transition-all hover:shadow-md ${selectedNote?.id === note.id ? "border-primary" : ""}`}
               onClick={() => setSelectedNote(note)}
             >

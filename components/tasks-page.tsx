@@ -314,7 +314,7 @@ export function TasksPage() {
                         <Badge className={getPriorityColor(task.priority)}>{task.priority}</Badge>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Editar">
                               <Pencil className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -323,6 +323,7 @@ export function TasksPage() {
                             <DropdownMenuItem
                               onClick={() => handleDeleteTask(task.id, column.id)}
                               className="text-red-600"
+                              aria-label="Excluir"
                             >
                               Excluir
                             </DropdownMenuItem>
@@ -349,17 +350,17 @@ export function TasksPage() {
                     {/* Botões para mover a tarefa */}
                     <div className="mt-3 flex justify-end gap-1">
                       {column.id !== "todo" && (
-                        <Button variant="ghost" size="sm" onClick={() => handleMoveTask(task.id, column.id, "todo")}>
+                        <Button variant="ghost" size="sm" onClick={() => handleMoveTask(task.id, column.id, "todo")} aria-label="Mover">
                           ← A Fazer
                         </Button>
                       )}
                       {column.id !== "doing" && (
-                        <Button variant="ghost" size="sm" onClick={() => handleMoveTask(task.id, column.id, "doing")}>
+                        <Button variant="ghost" size="sm" onClick={() => handleMoveTask(task.id, column.id, "doing")} aria-label="Mover">
                           {column.id === "todo" ? "→" : "←"} Em Andamento
                         </Button>
                       )}
                       {column.id !== "done" && (
-                        <Button variant="ghost" size="sm" onClick={() => handleMoveTask(task.id, column.id, "done")}>
+                        <Button variant="ghost" size="sm" onClick={() => handleMoveTask(task.id, column.id, "done")} aria-label="Mover">
                           Concluído →
                         </Button>
                       )}
@@ -485,7 +486,7 @@ export function TasksPage() {
             )}
           </div>
           <DialogFooter>
-            <Button type="submit" onClick={handleAddTask}>
+            <Button type="submit" onClick={handleAddTask} aria-label="Salvar">
               {isEditMode ? "Salvar Alterações" : "Adicionar Tarefa"}
             </Button>
           </DialogFooter>
@@ -505,7 +506,7 @@ export function TasksPage() {
             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button variant="destructive" onClick={confirmDeleteTask}>
+            <Button variant="destructive" onClick={confirmDeleteTask} aria-label="Excluir">
               Excluir
             </Button>
           </DialogFooter>
