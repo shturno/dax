@@ -6,7 +6,9 @@ jest.mock('@/components/dashboard-layout', () => ({
 import { NotesPage } from '../../components/notes-page';
 
 describe('NotesPage CRUD', () => {
-  beforeEach(() => { localStorage.clear(); });
+  beforeEach(() => {
+    localStorage.clear();
+  });
 
   it('should add a new note', async () => {
     render(<NotesPage />);
@@ -26,14 +28,18 @@ describe('NotesPage CRUD', () => {
     render(<NotesPage />);
     // Seleciona a nota pelo título
     // Busca todos os Cards e encontra o que contém o título
-    const noteTitles = screen.queryAllByText((content, node) => node?.textContent?.includes('Arquitetura do Editor') ?? false);
+    const noteTitles = screen.queryAllByText(
+      (content, node) => node?.textContent?.includes('Arquitetura do Editor') ?? false
+    );
     expect(noteTitles.length).toBeGreaterThan(0);
     const noteTitle = noteTitles.find(el => el.closest('[data-testid="note-card"]'));
     expect(noteTitle).toBeDefined();
     const card = noteTitle!.closest('[data-testid="note-card"]');
     expect(card).not.toBeNull();
     fireEvent.click(card!);
-    await waitFor(() => expect(screen.getByDisplayValue('Arquitetura do Editor')).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByDisplayValue('Arquitetura do Editor')).toBeInTheDocument()
+    );
     const titleInput = screen.getByDisplayValue('Arquitetura do Editor');
     fireEvent.change(titleInput, { target: { value: 'Nota Editada' } });
     fireEvent.click(screen.getByRole('button', { name: /Salvar/i }));
@@ -44,28 +50,36 @@ describe('NotesPage CRUD', () => {
     render(<NotesPage />);
     // Seleciona a nota pelo título
     // Busca todos os Cards e encontra o que contém o título
-    const noteTitles = screen.queryAllByText((content, node) => node?.textContent?.includes('Arquitetura do Editor') ?? false);
+    const noteTitles = screen.queryAllByText(
+      (content, node) => node?.textContent?.includes('Arquitetura do Editor') ?? false
+    );
     expect(noteTitles.length).toBeGreaterThan(0);
     const noteTitle = noteTitles.find(el => el.closest('[data-testid="note-card"]'));
     expect(noteTitle).toBeDefined();
     const card = noteTitle!.closest('[data-testid="note-card"]');
     expect(card).not.toBeNull();
     fireEvent.click(card!);
-    await waitFor(() => expect(screen.getByDisplayValue('Arquitetura do Editor')).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByDisplayValue('Arquitetura do Editor')).toBeInTheDocument()
+    );
     fireEvent.click(screen.getByRole('button', { name: /Excluir/i }));
     await waitFor(() => expect(screen.getByText(/Confirmar Exclusão/i)).toBeInTheDocument());
     const dialogButtons = screen.getAllByRole('button', { name: /Excluir/i });
     fireEvent.click(dialogButtons[dialogButtons.length - 1]);
     await waitFor(() => {
       expect(
-        screen.queryAllByText((content, node) => node?.textContent?.includes('Arquitetura do Editor') ?? false)
+        screen.queryAllByText(
+          (content, node) => node?.textContent?.includes('Arquitetura do Editor') ?? false
+        )
       ).toHaveLength(0);
     });
   });
 
   it('should filter notes', async () => {
     render(<NotesPage />);
-    fireEvent.change(screen.getByPlaceholderText(/Buscar nota/i), { target: { value: 'Arquitetura' } });
+    fireEvent.change(screen.getByPlaceholderText(/Buscar nota/i), {
+      target: { value: 'Arquitetura' },
+    });
     await waitFor(() => {
       const cards = screen.getAllByTestId('note-card');
       expect(cards).toHaveLength(1);
@@ -77,14 +91,19 @@ describe('NotesPage CRUD', () => {
     // Clear localStorage and set notes to an empty array
     localStorage.clear();
     localStorage.setItem('notes', JSON.stringify([]));
-    
+
     // Render the component with empty notes
     render(<NotesPage />);
-    
+
     // Check for empty state message
-    await waitFor(() => {
-      expect(screen.getByText('Nenhuma nota selecionada')).toBeInTheDocument();
-      expect(screen.getByText('Selecione uma nota para editar ou crie uma nova')).toBeInTheDocument();
-    }, { timeout: 10000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText('Nenhuma nota selecionada')).toBeInTheDocument();
+        expect(
+          screen.getByText('Selecione uma nota para editar ou crie uma nova')
+        ).toBeInTheDocument();
+      },
+      { timeout: 10000 }
+    );
   });
 });

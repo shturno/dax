@@ -1,209 +1,228 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
-import { Plus, Pencil } from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { toast } from "@/components/ui/use-toast"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Plus, Pencil } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { toast } from '@/components/ui/use-toast';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type RoadmapItem = {
-  id: string
-  title: string
-  description: string
-  status: "Planejado" | "Em Progresso" | "Concluído"
-  quarter: "Q1" | "Q2" | "Q3" | "Q4"
-  year: string
-}
+  id: string;
+  title: string;
+  description: string;
+  status: 'Planejado' | 'Em Progresso' | 'Concluído';
+  quarter: 'Q1' | 'Q2' | 'Q3' | 'Q4';
+  year: string;
+};
 
 export function RoadmapPage() {
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isEditMode, setIsEditMode] = useState(false)
-  const [currentItemId, setCurrentItemId] = useState<string | null>(null)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [itemToDelete, setItemToDelete] = useState<string | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [currentItemId, setCurrentItemId] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
-  const [newItem, setNewItem] = useState<Omit<RoadmapItem, "id">>({
-    title: "",
-    description: "",
-    status: "Planejado",
-    quarter: "Q1",
-    year: "2024",
-  })
+  const [newItem, setNewItem] = useState<Omit<RoadmapItem, 'id'>>({
+    title: '',
+    description: '',
+    status: 'Planejado',
+    quarter: 'Q1',
+    year: '2024',
+  });
 
   const [roadmapItems, setRoadmapItems] = useState<RoadmapItem[]>([
     {
-      id: "1",
-      title: "MVP do Editor",
-      description: "Versão inicial com funcionalidades básicas de edição",
-      status: "Concluído",
-      quarter: "Q1",
-      year: "2024",
+      id: '1',
+      title: 'MVP do Editor',
+      description: 'Versão inicial com funcionalidades básicas de edição',
+      status: 'Concluído',
+      quarter: 'Q1',
+      year: '2024',
     },
     {
-      id: "2",
-      title: "Integração com IA",
-      description: "Suporte para sugestões de código usando IA",
-      status: "Em Progresso",
-      quarter: "Q1",
-      year: "2024",
+      id: '2',
+      title: 'Integração com IA',
+      description: 'Suporte para sugestões de código usando IA',
+      status: 'Em Progresso',
+      quarter: 'Q1',
+      year: '2024',
     },
     {
-      id: "3",
-      title: "Sistema de Extensões",
-      description: "Framework para plugins e extensões de terceiros",
-      status: "Planejado",
-      quarter: "Q2",
-      year: "2024",
+      id: '3',
+      title: 'Sistema de Extensões',
+      description: 'Framework para plugins e extensões de terceiros',
+      status: 'Planejado',
+      quarter: 'Q2',
+      year: '2024',
     },
     {
-      id: "4",
-      title: "Colaboração em Tempo Real",
-      description: "Edição colaborativa com múltiplos usuários",
-      status: "Planejado",
-      quarter: "Q2",
-      year: "2024",
+      id: '4',
+      title: 'Colaboração em Tempo Real',
+      description: 'Edição colaborativa com múltiplos usuários',
+      status: 'Planejado',
+      quarter: 'Q2',
+      year: '2024',
     },
     {
-      id: "5",
-      title: "Integração com GitHub",
-      description: "Suporte para repositórios Git e GitHub",
-      status: "Planejado",
-      quarter: "Q3",
-      year: "2024",
+      id: '5',
+      title: 'Integração com GitHub',
+      description: 'Suporte para repositórios Git e GitHub',
+      status: 'Planejado',
+      quarter: 'Q3',
+      year: '2024',
     },
     {
-      id: "6",
-      title: "Depuração Integrada",
-      description: "Ferramentas de depuração para múltiplas linguagens",
-      status: "Planejado",
-      quarter: "Q3",
-      year: "2024",
+      id: '6',
+      title: 'Depuração Integrada',
+      description: 'Ferramentas de depuração para múltiplas linguagens',
+      status: 'Planejado',
+      quarter: 'Q3',
+      year: '2024',
     },
     {
-      id: "7",
-      title: "Marketplace de Extensões",
-      description: "Loja para descoberta e instalação de extensões",
-      status: "Planejado",
-      quarter: "Q4",
-      year: "2024",
+      id: '7',
+      title: 'Marketplace de Extensões',
+      description: 'Loja para descoberta e instalação de extensões',
+      status: 'Planejado',
+      quarter: 'Q4',
+      year: '2024',
     },
     {
-      id: "8",
-      title: "Versão Mobile",
-      description: "Aplicativo móvel para edição em dispositivos",
-      status: "Planejado",
-      quarter: "Q4",
-      year: "2024",
+      id: '8',
+      title: 'Versão Mobile',
+      description: 'Aplicativo móvel para edição em dispositivos',
+      status: 'Planejado',
+      quarter: 'Q4',
+      year: '2024',
     },
-  ])
+  ]);
 
   // Carregar roadmap do localStorage
   useEffect(() => {
-    const savedRoadmap = localStorage.getItem("roadmap")
+    const savedRoadmap = localStorage.getItem('roadmap');
     if (savedRoadmap) {
       try {
-        setRoadmapItems(JSON.parse(savedRoadmap))
+        setRoadmapItems(JSON.parse(savedRoadmap));
       } catch (e) {
-        console.error("Erro ao carregar roadmap:", e)
+        console.error('Erro ao carregar roadmap:', e);
       }
     }
-  }, [])
+  }, []);
 
   // Salvar roadmap no localStorage
   useEffect(() => {
-    localStorage.setItem("roadmap", JSON.stringify(roadmapItems))
-  }, [roadmapItems])
+    localStorage.setItem('roadmap', JSON.stringify(roadmapItems));
+  }, [roadmapItems]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Concluído":
-        return "bg-green-500 hover:bg-green-600"
-      case "Em Progresso":
-        return "bg-blue-500 hover:bg-blue-600"
-      case "Planejado":
-        return "bg-gray-500 hover:bg-gray-600"
+      case 'Concluído':
+        return 'bg-green-500 hover:bg-green-600';
+      case 'Em Progresso':
+        return 'bg-blue-500 hover:bg-blue-600';
+      case 'Planejado':
+        return 'bg-gray-500 hover:bg-gray-600';
       default:
-        return ""
+        return '';
     }
-  }
+  };
 
   const handleAddItem = () => {
-    if (!newItem.title) return
+    if (!newItem.title) return;
 
     if (isEditMode && currentItemId) {
       // Modo de edição
-      const updatedItems = roadmapItems.map((item) => (item.id === currentItemId ? { ...item, ...newItem } : item))
-      setRoadmapItems(updatedItems)
+      const updatedItems = roadmapItems.map(item =>
+        item.id === currentItemId ? { ...item, ...newItem } : item
+      );
+      setRoadmapItems(updatedItems);
       toast({
-        title: "Item atualizado",
-        description: "O item do roadmap foi atualizado com sucesso.",
-      })
+        title: 'Item atualizado',
+        description: 'O item do roadmap foi atualizado com sucesso.',
+      });
     } else {
       // Modo de adição
       const item: RoadmapItem = {
         id: Date.now().toString(),
         ...newItem,
-      }
-      setRoadmapItems([...roadmapItems, item])
+      };
+      setRoadmapItems([...roadmapItems, item]);
       toast({
-        title: "Item adicionado",
-        description: "O novo item foi adicionado ao roadmap com sucesso.",
-      })
+        title: 'Item adicionado',
+        description: 'O novo item foi adicionado ao roadmap com sucesso.',
+      });
     }
 
-    setIsDialogOpen(false)
-    setIsEditMode(false)
-    setCurrentItemId(null)
+    setIsDialogOpen(false);
+    setIsEditMode(false);
+    setCurrentItemId(null);
     setNewItem({
-      title: "",
-      description: "",
-      status: "Planejado",
-      quarter: "Q1",
-      year: "2024",
-    })
-  }
+      title: '',
+      description: '',
+      status: 'Planejado',
+      quarter: 'Q1',
+      year: '2024',
+    });
+  };
 
   const handleEditItem = (item: RoadmapItem) => {
-    setIsEditMode(true)
-    setCurrentItemId(item.id)
+    setIsEditMode(true);
+    setCurrentItemId(item.id);
     setNewItem({
       title: item.title,
       description: item.description,
       status: item.status,
       quarter: item.quarter,
       year: item.year,
-    })
-    setIsDialogOpen(true)
-  }
+    });
+    setIsDialogOpen(true);
+  };
 
   const handleDeleteItem = (itemId: string) => {
-    setItemToDelete(itemId)
-    setIsDeleteDialogOpen(true)
-  }
+    setItemToDelete(itemId);
+    setIsDeleteDialogOpen(true);
+  };
 
   const confirmDeleteItem = () => {
-    if (!itemToDelete) return
+    if (!itemToDelete) return;
 
-    const updatedItems = roadmapItems.filter((item) => item.id !== itemToDelete)
-    setRoadmapItems(updatedItems)
-    setIsDeleteDialogOpen(false)
-    setItemToDelete(null)
+    const updatedItems = roadmapItems.filter(item => item.id !== itemToDelete);
+    setRoadmapItems(updatedItems);
+    setIsDeleteDialogOpen(false);
+    setItemToDelete(null);
     toast({
-      title: "Item excluído",
-      description: "O item foi removido do roadmap com sucesso.",
-    })
-  }
+      title: 'Item excluído',
+      description: 'O item foi removido do roadmap com sucesso.',
+    });
+  };
 
-  const quarters = ["Q1", "Q2", "Q3", "Q4"]
-  const years = Array.from(new Set(roadmapItems.map((item) => item.year))).sort()
+  const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+  const years = Array.from(new Set(roadmapItems.map(item => item.year))).sort();
 
   return (
     <div className="space-y-6">
@@ -212,16 +231,16 @@ export function RoadmapPage() {
         <Button
           size="sm"
           onClick={() => {
-            setIsEditMode(false)
-            setCurrentItemId(null)
+            setIsEditMode(false);
+            setCurrentItemId(null);
             setNewItem({
-              title: "",
-              description: "",
-              status: "Planejado",
-              quarter: "Q1",
-              year: "2024",
-            })
-            setIsDialogOpen(true)
+              title: '',
+              description: '',
+              status: 'Planejado',
+              quarter: 'Q1',
+              year: '2024',
+            });
+            setIsDialogOpen(true);
           }}
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -237,7 +256,7 @@ export function RoadmapPage() {
 
         <TabsContent value="timeline" className="mt-4">
           <div className="relative space-y-8 before:absolute before:inset-0 before:left-9 before:ml-0.5 before:border-l-2 before:border-dashed before:border-muted-foreground/20">
-            {roadmapItems.map((item) => (
+            {roadmapItems.map(item => (
               <div key={item.id} className="flex gap-4">
                 <div className="relative mt-3 flex h-6 w-6 flex-none items-center justify-center rounded-full bg-primary text-primary-foreground shadow">
                   <div className="h-2.5 w-2.5 rounded-full bg-current" />
@@ -261,8 +280,13 @@ export function RoadmapPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleEditItem(item)}>Editar</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDeleteItem(item.id)} className="text-red-600">
+                              <DropdownMenuItem onClick={() => handleEditItem(item)}>
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleDeleteItem(item.id)}
+                                className="text-red-600"
+                              >
                                 Excluir
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -281,19 +305,19 @@ export function RoadmapPage() {
         </TabsContent>
 
         <TabsContent value="quarters" className="mt-4">
-          {years.map((year) => (
+          {years.map(year => (
             <div key={year} className="mb-8">
               <h3 className="mb-4 text-xl font-bold">{year}</h3>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                {quarters.map((quarter) => (
+                {quarters.map(quarter => (
                   <Card key={quarter} data-testid="roadmap-card" className="h-full">
                     <CardHeader>
                       <CardTitle className="text-lg">{quarter}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {roadmapItems
-                        .filter((item) => item.quarter === quarter && item.year === year)
-                        .map((item) => (
+                        .filter(item => item.quarter === quarter && item.year === year)
+                        .map(item => (
                           <div key={item.id} className="space-y-2">
                             <div className="flex items-center justify-between">
                               <h4 className="font-medium">{item.title}</h4>
@@ -306,7 +330,9 @@ export function RoadmapPage() {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => handleEditItem(item)}>Editar</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleEditItem(item)}>
+                                      Editar
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem
                                       onClick={() => handleDeleteItem(item.id)}
                                       className="text-red-600"
@@ -333,7 +359,9 @@ export function RoadmapPage() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>{isEditMode ? "Editar Item do Roadmap" : "Adicionar Novo Item"}</DialogTitle>
+            <DialogTitle>
+              {isEditMode ? 'Editar Item do Roadmap' : 'Adicionar Novo Item'}
+            </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
@@ -341,7 +369,7 @@ export function RoadmapPage() {
               <Input
                 id="title"
                 value={newItem.title}
-                onChange={(e) => setNewItem({ ...newItem, title: e.target.value })}
+                onChange={e => setNewItem({ ...newItem, title: e.target.value })}
                 placeholder="Título do item"
               />
             </div>
@@ -350,7 +378,7 @@ export function RoadmapPage() {
               <Textarea
                 id="description"
                 value={newItem.description}
-                onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
+                onChange={e => setNewItem({ ...newItem, description: e.target.value })}
                 placeholder="Descrição do item"
               />
             </div>
@@ -358,8 +386,11 @@ export function RoadmapPage() {
               <Label htmlFor="status">Status</Label>
               <Select
                 value={newItem.status}
-                onValueChange={(value) =>
-                  setNewItem({ ...newItem, status: value as "Planejado" | "Em Progresso" | "Concluído" })
+                onValueChange={value =>
+                  setNewItem({
+                    ...newItem,
+                    status: value as 'Planejado' | 'Em Progresso' | 'Concluído',
+                  })
                 }
               >
                 <SelectTrigger id="status">
@@ -377,7 +408,9 @@ export function RoadmapPage() {
                 <Label htmlFor="quarter">Trimestre</Label>
                 <Select
                   value={newItem.quarter}
-                  onValueChange={(value) => setNewItem({ ...newItem, quarter: value as "Q1" | "Q2" | "Q3" | "Q4" })}
+                  onValueChange={value =>
+                    setNewItem({ ...newItem, quarter: value as 'Q1' | 'Q2' | 'Q3' | 'Q4' })
+                  }
                 >
                   <SelectTrigger id="quarter">
                     <SelectValue placeholder="Trimestre" />
@@ -392,7 +425,10 @@ export function RoadmapPage() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="year">Ano</Label>
-                <Select value={newItem.year} onValueChange={(value) => setNewItem({ ...newItem, year: value })}>
+                <Select
+                  value={newItem.year}
+                  onValueChange={value => setNewItem({ ...newItem, year: value })}
+                >
                   <SelectTrigger id="year">
                     <SelectValue placeholder="Ano" />
                   </SelectTrigger>
@@ -407,7 +443,7 @@ export function RoadmapPage() {
           </div>
           <DialogFooter>
             <Button type="submit" onClick={handleAddItem}>
-              {isEditMode ? "Salvar Alterações" : "Adicionar Item"}
+              {isEditMode ? 'Salvar Alterações' : 'Adicionar Item'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -420,7 +456,9 @@ export function RoadmapPage() {
             <DialogTitle>Confirmar Exclusão</DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <p>Tem certeza que deseja excluir este item do roadmap? Esta ação não pode ser desfeita.</p>
+            <p>
+              Tem certeza que deseja excluir este item do roadmap? Esta ação não pode ser desfeita.
+            </p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
@@ -433,5 +471,5 @@ export function RoadmapPage() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

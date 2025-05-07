@@ -14,33 +14,41 @@ const options: MongoClientOptions = {
   writeConcern: {
     w: 'majority',
     j: true,
-    wtimeout: 5000
+    wtimeout: 5000,
   },
   readConcern: {
-    level: 'majority'
+    level: 'majority',
   },
-  readPreference: 'primary'
+  readPreference: 'primary',
 };
 
 let client: MongoClient | null = null;
 
-export async function getMongoClient() {
-  if (!client) {
-    try {
+// Consolidate MongoDB connection logic
+export async function connectToDatabase() {
+  if (process.env.NODE_ENV === 'development') {
+    if (!global._mongoClientPromise) {
+      const client = new MongoClient(uri, options);
+      global._mongoClientPromise = client.connect();
+    }
+    client = await global._mongoClientPromise;
+  } else {
+    if (!client) {
       client = new MongoClient(uri, options);
       await client.connect();
-      console.log('Conexão com MongoDB estabelecida');
-    } catch (error) {
-      console.error('Erro ao conectar com MongoDB:', error);
-      throw error;
     }
   }
+  return { client, db: client.db('saas-dashboard') };
+}
+
+export async function getMongoClient() {
+  const { client } = await connectToDatabase();
   return client;
 }
 
 export async function getDb() {
-  const client = await getMongoClient();
-  return client.db("saas-dashboard");
+  const { db } = await connectToDatabase();
+  return db;
 }
 
 export async function closeConnection() {
@@ -55,18 +63,18 @@ export async function closeConnection() {
 if (process.env.NODE_ENV === 'development') {
   const client = new MongoClient(uri, {
     ...options,
-    monitorCommands: true
+    monitorCommands: true,
   });
 
-  client.on('commandStarted', (event) => {
+  client.on('commandStarted', event => {
     console.log(`Comando iniciado: ${event.commandName}`);
   });
 
-  client.on('commandSucceeded', (event) => {
+  client.on('commandSucceeded', event => {
     console.log(`Comando bem sucedido: ${event.commandName}`);
   });
 
-  client.on('commandFailed', (event) => {
+  client.on('commandFailed', event => {
     console.error(`Comando falhou: ${event.commandName}`, event.failure);
   });
-} 
+}

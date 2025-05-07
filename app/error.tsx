@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React from "react";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import { Button } from '@/components/ui/button';
 
 export default function Error({ error, reset }: { error: Error; reset: () => void }) {
   return (

@@ -30,12 +30,12 @@ class MockRequest {
 
 // Mock next-auth
 jest.mock('next-auth/next', () => ({
-  getServerSession: jest.fn()
+  getServerSession: jest.fn(),
 }));
 
 // Mock stats-service
 jest.mock('../stats-service', () => ({
-  getDashboardStats: jest.fn()
+  getDashboardStats: jest.fn(),
 }));
 
 // Mock logger
@@ -43,8 +43,8 @@ jest.mock('@/utils/logger', () => ({
   logger: {
     info: jest.fn(),
     warn: jest.fn(),
-    error: jest.fn()
-  }
+    error: jest.fn(),
+  },
 }));
 
 // Mock NextResponse
@@ -54,10 +54,10 @@ jest.mock('next/server', () => ({
       return {
         body,
         options,
-        headers: new Map()
+        headers: new Map(),
       };
-    })
-  }
+    }),
+  },
 }));
 
 describe('Stats API Route', () => {
@@ -68,21 +68,21 @@ describe('Stats API Route', () => {
   describe('GET', () => {
     it('deve retornar 401 se o usuário não estiver autenticado', async () => {
       (getServerSession as jest.Mock).mockResolvedValue(null);
-      
+
       await GET();
-      
+
       expect(NextResponse.json).toHaveBeenCalledWith(
         { success: false, message: 'Não autorizado' },
         { status: 401 }
       );
       expect(getDashboardStats).not.toHaveBeenCalled();
     });
-    
+
     it('deve retornar as estatísticas do dashboard para o usuário autenticado', async () => {
       const mockSession = {
-        user: { email: 'user@example.com' }
+        user: { email: 'user@example.com' },
       };
-      
+
       const mockStats = {
         success: true,
         statusCode: 200,
@@ -93,59 +93,59 @@ describe('Stats API Route', () => {
               _id: 'activity1',
               userEmail: 'user@example.com',
               action: 'login',
-              createdAt: new Date()
-            }
-          ]
-        }
+              createdAt: new Date(),
+            },
+          ],
+        },
       };
-      
+
       (getServerSession as jest.Mock).mockResolvedValue(mockSession);
       (getDashboardStats as jest.Mock).mockResolvedValue(mockStats);
-      
+
       await GET();
-      
+
       expect(getDashboardStats).toHaveBeenCalledWith('user@example.com');
       expect(NextResponse.json).toHaveBeenCalledWith(
         { success: true, stats: mockStats.stats, message: undefined },
         { status: 200 }
       );
     });
-    
+
     it('deve lidar com erros do serviço de estatísticas', async () => {
       const mockSession = {
-        user: { email: 'user@example.com' }
+        user: { email: 'user@example.com' },
       };
-      
+
       const mockError = {
         success: false,
         statusCode: 500,
-        error: 'Erro ao buscar estatísticas'
+        error: 'Erro ao buscar estatísticas',
       };
-      
+
       (getServerSession as jest.Mock).mockResolvedValue(mockSession);
       (getDashboardStats as jest.Mock).mockResolvedValue(mockError);
-      
+
       await GET();
-      
+
       expect(getDashboardStats).toHaveBeenCalledWith('user@example.com');
       expect(NextResponse.json).toHaveBeenCalledWith(
         { success: false, stats: undefined, message: 'Erro ao buscar estatísticas' },
         { status: 500 }
       );
     });
-    
+
     it('deve lidar com exceções não tratadas', async () => {
       const mockSession = {
-        user: { email: 'user@example.com' }
+        user: { email: 'user@example.com' },
       };
-      
+
       const mockError = new Error('Erro inesperado');
-      
+
       (getServerSession as jest.Mock).mockResolvedValue(mockSession);
       (getDashboardStats as jest.Mock).mockRejectedValue(mockError);
-      
+
       await GET();
-      
+
       expect(logger.error).toHaveBeenCalled();
       expect(NextResponse.json).toHaveBeenCalledWith(
         { success: false, message: 'Erro no servidor' },

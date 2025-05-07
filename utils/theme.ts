@@ -10,7 +10,7 @@ export function getCurrentTheme(): 'light' | 'dark' {
 export function setTheme(theme: 'light' | 'dark'): void {
   if (typeof window !== 'undefined') {
     localStorage.setItem('theme', theme);
-    
+
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
       document.documentElement.style.colorScheme = 'dark';

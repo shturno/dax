@@ -1,16 +1,16 @@
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
-import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function GET() {
   const session = await getServerSession(authOptions);
-  
+
   // Obter cookies para debug de forma segura
   const cookieStore = cookies();
-  const cookieNames = cookieStore.getAll().map((c) => ({
+  const cookieNames = cookieStore.getAll().map(c => ({
     name: c.name,
-    hasValue: !!c.value
+    hasValue: !!c.value,
   }));
 
   return NextResponse.json({
@@ -19,6 +19,6 @@ export async function GET() {
     cookiesFound: cookieNames.length,
     cookieNames,
     sessionHasRole: session?.user?.role !== undefined,
-    roleValue: session?.user?.role || "não encontrado"
+    roleValue: session?.user?.role || 'não encontrado',
   });
 }

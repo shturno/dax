@@ -24,23 +24,25 @@ describe('NewProjectPage', () => {
     expect(screen.getByRole('button', { name: /Criar Projeto/i })).toBeInTheDocument();
   });
 
-  it('submits form and navigates on success', async () => {
+  it('submits form and navigates to project page on success', async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ project: {
-        _id: '1',
-        name: 'Test',
-        description: 'Desc',
-        ownerId: 'owner',
-        createdAt: '',
-        updatedAt: ''
-      } }),
+      json: async () => ({
+        project: {
+          _id: '1',
+          name: 'Test',
+          description: 'Desc',
+          ownerId: 'owner',
+          createdAt: '',
+          updatedAt: '',
+        },
+      }),
     });
     render(<NewProjectPage />);
     fireEvent.change(screen.getByLabelText(/Nome do Projeto/i), { target: { value: 'Test' } });
     fireEvent.change(screen.getByLabelText(/Descrição/i), { target: { value: 'Desc' } });
     fireEvent.click(screen.getByRole('button', { name: /Criar Projeto/i }));
-    await waitFor(() => expect(push).toHaveBeenCalledWith('/'));
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/projects/1'));
   });
 
   it('shows error on failure', async () => {

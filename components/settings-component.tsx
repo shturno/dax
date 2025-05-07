@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
 
 export default function SettingsComponent() {
   const [settings, setSettings] = useState({
     notifications: true,
     darkMode: true,
     autoSave: true,
-    language: "pt-BR",
+    language: 'pt-BR',
   });
 
   const handleToggleSetting = (key: keyof typeof settings) => {
-    if (typeof settings[key] === "boolean") {
+    if (typeof settings[key] === 'boolean') {
       setSettings({
         ...settings,
         [key]: !settings[key],
@@ -40,14 +40,14 @@ export default function SettingsComponent() {
           </div>
           <button
             aria-label="Alternar Notificações"
-            onClick={() => handleToggleSetting("notifications")}
+            onClick={() => handleToggleSetting('notifications')}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-              settings.notifications ? "bg-blue-600" : "bg-zinc-700"
+              settings.notifications ? 'bg-blue-600' : 'bg-zinc-700'
             }`}
           >
             <span
               className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
-                settings.notifications ? "translate-x-6" : "translate-x-1"
+                settings.notifications ? 'translate-x-6' : 'translate-x-1'
               }`}
             />
           </button>
@@ -60,14 +60,14 @@ export default function SettingsComponent() {
             <p className="text-sm text-gray-400">Salvar alterações automaticamente</p>
           </div>
           <button
-            onClick={() => handleToggleSetting("autoSave")}
+            onClick={() => handleToggleSetting('autoSave')}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-              settings.autoSave ? "bg-blue-600" : "bg-zinc-700"
+              settings.autoSave ? 'bg-blue-600' : 'bg-zinc-700'
             }`}
           >
             <span
               className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
-                settings.autoSave ? "translate-x-6" : "translate-x-1"
+                settings.autoSave ? 'translate-x-6' : 'translate-x-1'
               }`}
             />
           </button>
@@ -82,7 +82,7 @@ export default function SettingsComponent() {
           <select
             aria-label="Selecionar Idioma"
             value={settings.language}
-            onChange={(e) => handleSelectChange("language", e.target.value)}
+            onChange={e => handleSelectChange('language', e.target.value)}
             className="bg-zinc-800 border border-zinc-700 rounded-md text-white py-1 px-3 text-sm"
           >
             <option value="pt-BR">Português (Brasil)</option>

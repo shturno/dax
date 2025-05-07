@@ -17,19 +17,19 @@ db.createCollection('users');
 
 // Inserir um usuário de teste
 db.users.insertOne({
-  username: "usuarioteste",
-  email: "teste@exemplo.com",
-  password: "$2a$10$X7VYHy4MO1bFJ2ziRYGGF.0ROJVVs2zhCdy1dGhjqHCgQgmPQk94i", // "senha123" em hash
+  username: 'usuarioteste',
+  email: 'teste@exemplo.com',
+  password: '$2a$10$X7VYHy4MO1bFJ2ziRYGGF.0ROJVVs2zhCdy1dGhjqHCgQgmPQk94i', // "senha123" em hash
   settings: {
-    projectName: "Projeto Teste",
-    projectDescription: "Descrição de um projeto de teste",
+    projectName: 'Projeto Teste',
+    projectDescription: 'Descrição de um projeto de teste',
     notifications: true,
     autoSave: true,
     autoSaveInterval: 5,
     fontSize: 16,
-    primaryColor: "default"
+    primaryColor: 'default',
   },
-  createdAt: new Date()
+  createdAt: new Date(),
 });
 
 // Listar todos os usuários
@@ -41,10 +41,10 @@ db.createCollection('documents');
 // Inserir um documento de teste
 db.documents.insertOne({
   userId: db.users.findOne()._id, // Pega o ID do primeiro usuário
-  title: "Meu Primeiro Documento",
-  content: "Conteúdo de exemplo para testar o banco de dados",
+  title: 'Meu Primeiro Documento',
+  content: 'Conteúdo de exemplo para testar o banco de dados',
   createdAt: new Date(),
-  updatedAt: new Date()
+  updatedAt: new Date(),
 });
 
 // Listar todos os documentos

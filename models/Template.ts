@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+import mongoose from 'mongoose';
 
 const templateSchema = new mongoose.Schema({
   name: String,
@@ -8,7 +8,7 @@ const templateSchema = new mongoose.Schema({
   roadmap: [String],
   features: [String],
   ideas: [String],
-  feedback: [String]
-})
+  feedback: [String],
+});
 
-export default mongoose.models.Template || mongoose.model('Template', templateSchema)
+export default mongoose.models.Template || mongoose.model('Template', templateSchema);

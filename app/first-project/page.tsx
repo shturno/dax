@@ -1,74 +1,86 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { useToast } from "@/components/ui/use-toast"
-import { Loader2 } from "lucide-react"
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { useToast } from '@/components/ui/use-toast';
+import { Loader2 } from 'lucide-react';
 
 export default function FirstProjectPage() {
-  const router = useRouter()
-  const { toast } = useToast()
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
-    description: ""
-  })
+    name: '',
+    description: '',
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
-    })
-  }
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
+      const token = localStorage.getItem('authToken'); // Obter o token de autenticação
+      console.log('Token recuperado do localStorage:', token); // Log para depuração
+
       const response = await fetch('/api/projects', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: token || '', // Enviar o token no cabeçalho
         },
         body: JSON.stringify({
           name: formData.name,
           description: formData.description,
         }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok || !data.success) {
         toast({
-          title: "Erro",
-          description: data.message || "Erro ao criar projeto",
-          variant: "destructive",
-        })
-        setLoading(false)
-        return
+          title: 'Erro',
+          description: data.message || 'Erro ao criar projeto',
+          variant: 'destructive',
+        });
+        setLoading(false);
+        return;
       }
 
       toast({
-        title: "Sucesso",
-        description: "Projeto criado com sucesso!",
-      })
+        title: 'Sucesso',
+        description: 'Projeto criado com sucesso!',
+      });
 
-      router.push("/dashboard")
+      // Redirecionar para o dashboard após criar o projeto
+      router.push('/dashboard');
     } catch {
       toast({
-        title: "Erro",
-        description: "Erro ao criar projeto",
-        variant: "destructive",
-      })
+        title: 'Erro',
+        description: 'Erro ao criar projeto',
+        variant: 'destructive',
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
@@ -105,11 +117,11 @@ export default function FirstProjectPage() {
           </CardContent>
           <CardFooter>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Criando..." : "Criar Projeto"}
+              {loading ? 'Criando...' : 'Criar Projeto'}
             </Button>
           </CardFooter>
         </form>
       </Card>
     </div>
-  )
-} 
+  );
+}

@@ -1,8 +1,8 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
-import { MongoClient } from "mongodb";
-import { Session } from "next-auth";
+import NextAuth, { NextAuthOptions } from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import bcrypt from 'bcryptjs';
+import { MongoClient } from 'mongodb';
+import { Session } from 'next-auth';
 
 const MONGODB_URI = process.env.MONGODB_URI!;
 
@@ -13,72 +13,72 @@ async function getMongoClient() {
 }
 
 if (!process.env.NEXTAUTH_SECRET) {
-  throw new Error("NEXTAUTH_SECRET deve ser definido");
+  throw new Error('NEXTAUTH_SECRET deve ser definido');
 }
 
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
-      name: "Credentials",
+      name: 'Credentials',
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Senha", type: "password" }
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Senha', type: 'password' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          console.log("❌ Credenciais incompletas");
+          console.log('❌ Credenciais incompletas');
           return null;
         }
-      
+
         let client;
         try {
           client = await getMongoClient();
-          const db = client.db("saas-dashboard");
-          
+          const db = client.db('saas-dashboard');
+
           console.log(`🔍 Buscando usuário: ${credentials.email}`);
-          const user = await db.collection("users").findOne({ email: credentials.email });
-          
+          const user = await db.collection('users').findOne({ email: credentials.email });
+
           if (!user) {
-            console.log("❌ Usuário não encontrado");
+            console.log('❌ Usuário não encontrado');
             return null;
           }
-          
-          console.log("📝 Senha fornecida:", credentials.password);
-          console.log("🔐 Hash no banco:", user.password);
-          
+
+          console.log('📝 Senha fornecida:', credentials.password);
+          console.log('🔐 Hash no banco:', user.password);
+
           const isPasswordMatch = await bcrypt.compare(credentials.password, user.password);
-          console.log("🔑 Resultado da comparação:", isPasswordMatch);
-          
+          console.log('🔑 Resultado da comparação:', isPasswordMatch);
+
           if (!isPasswordMatch) {
-            console.log("❌ Senha incorreta");
+            console.log('❌ Senha incorreta');
             return null;
           }
-          
-          console.log("✅ Autenticação bem-sucedida");
+
+          console.log('✅ Autenticação bem-sucedida');
           return {
             id: user._id.toString(),
-            name: user.username || user.email.split("@")[0],
+            name: user.username || user.email.split('@')[0],
             email: user.email,
-            username: user.username || user.email.split("@")[0], // <-- aqui!
+            username: user.username || user.email.split('@')[0], // <-- aqui!
           };
         } catch (error) {
-          console.error("❌ Erro na autenticação:", error);
+          console.error('❌ Erro na autenticação:', error);
           return null;
         } finally {
           if (client) await client.close();
         }
-      }
-    })
+      },
+    }),
   ],
-  session: { strategy: "jwt" },
-  pages: { signIn: "/login" },
+  session: { strategy: 'jwt' },
+  pages: { signIn: '/login' },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id
-        if ('username' in user) token.username = user.username
+        token.id = user.id;
+        if ('username' in user) token.username = user.username;
       }
-      return token
+      return token;
     },
     async session({ session, token }) {
       return {
@@ -90,9 +90,8 @@ export const authOptions: NextAuthOptions = {
           email: token.email as string | undefined,
           image: token.image as string | undefined,
         },
-      }
+      };
     },
-  
   },
   secret: process.env.NEXTAUTH_SECRET!,
 };

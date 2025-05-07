@@ -1,19 +1,24 @@
-'use client'
+'use client';
 
-import { useEffect } from 'react'
+import { useEffect } from 'react';
 
 export default function DynamicWrapper() {
   useEffect(() => {
     // Carrega a cor salva do localStorage
     const savedColor = localStorage.getItem('theme-color') || 'primary-blue';
     console.log('Tema carregado:', savedColor);
-    
+
     // Remove todas as classes de cores anteriores
-    document.body.classList.remove('primary-blue', 'primary-green', 'primary-purple', 'primary-orange');
-    
+    document.body.classList.remove(
+      'primary-blue',
+      'primary-green',
+      'primary-purple',
+      'primary-orange'
+    );
+
     // Adiciona a classe do tema salvo
     document.body.classList.add(savedColor);
-    
+
     // AQUI ESTÁ A MUDANÇA IMPORTANTE - Aplicar as variáveis CSS diretamente
     if (savedColor === 'primary-green') {
       document.documentElement.style.setProperty('--primary', '142.1 76.2% 36.3%');
@@ -24,12 +29,12 @@ export default function DynamicWrapper() {
     } else if (savedColor === 'primary-orange') {
       document.documentElement.style.setProperty('--primary', '24.6 95% 53.1%');
     }
-    
+
     // Aplicar um estilo direto para verificar se está funcionando
     const elements = document.querySelectorAll('button[class*="btn"], button[class*="primary"]');
     if (elements.length > 0) {
       console.log('Encontrei botões para estilizar:', elements.length);
-      
+
       // Aplicar cores diretamente aos botões para o tema verde
       if (savedColor === 'primary-green') {
         elements.forEach(el => {
@@ -40,6 +45,6 @@ export default function DynamicWrapper() {
       // Adicionar condições para outras cores...
     }
   }, []);
-  
+
   return null;
 }

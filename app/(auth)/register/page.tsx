@@ -1,56 +1,63 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { useToast } from "@/components/ui/use-toast"
-import { Loader2 } from "lucide-react"
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { useToast } from '@/components/ui/use-toast';
+import { Loader2 } from 'lucide-react';
 
 export default function RegisterPage() {
-  const router = useRouter()
-  const { toast } = useToast()
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: ""
-  })
+    name: '',
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
-    })
-  }
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!formData.name.trim()) {
       toast({
-        title: "Erro",
-        description: "O campo nome é obrigatório",
-        variant: "destructive",
-      })
-      return
+        title: 'Erro',
+        description: 'O campo nome é obrigatório',
+        variant: 'destructive',
+      });
+      return;
     }
 
     if (formData.password !== formData.confirmPassword) {
       toast({
-        title: "Erro",
-        description: "As senhas não coincidem",
-        variant: "destructive",
-      })
-      return
+        title: 'Erro',
+        description: 'As senhas não coincidem',
+        variant: 'destructive',
+      });
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
 
     try {
       const response = await fetch('/api/auth/register', {
@@ -62,37 +69,71 @@ export default function RegisterPage() {
           name: formData.name,
           username: formData.username,
           email: formData.email,
-          password: formData.password
+          password: formData.password,
         }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok || !data.success) {
         toast({
-          title: "Erro",
-          description: data.message || "Erro ao criar conta",
-          variant: "destructive",
-        })
-        setLoading(false)
-        return
+          title: 'Erro',
+          description: data.message || 'Erro ao criar conta',
+          variant: 'destructive',
+        });
+        setLoading(false);
+        return;
       }
 
-      toast({
-        title: "Conta criada com sucesso",
-        description: "Você será redirecionado para criar seu primeiro projeto",
-      })
-      router.push("/first-project")
+      if (response.ok && data.success) {
+        // Autenticar automaticamente após o registro usando NextAuth
+        const loginResponse = await fetch('/api/auth/callback/credentials', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            csrfToken: '', // Pode ser necessário obter o token CSRF do NextAuth
+            email: formData.email,
+            password: formData.password,
+          }),
+        });
+
+        if (loginResponse.ok) {
+          // Armazenar o token de autenticação após o login bem-sucedido
+          const session = await fetch('/api/auth/session');
+          const sessionData = await session.json();
+
+          if (sessionData?.user?.id) {
+            localStorage.setItem('authToken', `Bearer ${sessionData.user.id}`);
+            console.log('Token armazenado no localStorage:', `Bearer ${sessionData.user.id}`);
+          } else {
+            console.error('Erro ao recuperar a sessão após o login');
+          }
+
+          toast({
+            title: 'Conta criada com sucesso',
+            description: 'Você será redirecionado para criar seu primeiro projeto',
+          });
+          router.push('/first-project');
+        } else {
+          toast({
+            title: 'Erro',
+            description: 'Erro ao autenticar após o registro',
+            variant: 'destructive',
+          });
+        }
+      }
     } catch {
       toast({
-        title: "Erro",
-        description: "Erro ao criar conta",
-        variant: "destructive",
-      })
+        title: 'Erro',
+        description: 'Erro ao criar conta',
+        variant: 'destructive',
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
@@ -164,10 +205,10 @@ export default function RegisterPage() {
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Criando conta..." : "Criar Conta"}
+              {loading ? 'Criando conta...' : 'Criar Conta'}
             </Button>
             <p className="text-sm text-muted-foreground text-center">
-              Já tem uma conta?{" "}
+              Já tem uma conta?{' '}
               <Link href="/login" className="text-primary hover:underline">
                 Faça login
               </Link>
@@ -176,5 +217,5 @@ export default function RegisterPage() {
         </form>
       </Card>
     </div>
-  )
+  );
 }

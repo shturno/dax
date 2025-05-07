@@ -1,7 +1,14 @@
 import { useState } from 'react';
 import { DocSection } from '@/types/documentation';
 import { cn } from '@/lib/utils';
-import { FolderIcon, FolderOpenIcon, FileIcon, PlusIcon, TrashIcon, FolderPlusIcon } from 'lucide-react';
+import {
+  FolderIcon,
+  FolderOpenIcon,
+  FileIcon,
+  PlusIcon,
+  TrashIcon,
+  FolderPlusIcon,
+} from 'lucide-react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
@@ -24,27 +31,27 @@ export function DocSidebar({
   onNewSection,
   onNewFolder,
   onDeleteSection,
-  onMoveSection
+  onMoveSection,
 }: DocSidebarProps) {
   // Estado para controlar pastas expandidas
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
-  
+
   // Organizar seções em estrutura hierárquica
   const rootSections = sections.filter(s => !s.parentId);
-  
+
   const toggleFolder = (id: string) => {
     setExpandedFolders(prev => ({
       ...prev,
-      [id]: !prev[id]
+      [id]: !prev[id],
     }));
   };
-  
+
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="w-64 bg-zinc-900 border-r border-zinc-800 h-full overflow-y-auto p-4">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-white">Documentação</h2>
-          
+
           {isAdmin && (
             <div className="flex space-x-1">
               <button
@@ -54,7 +61,7 @@ export function DocSidebar({
               >
                 <PlusIcon className="h-4 w-4" />
               </button>
-              
+
               <button
                 onClick={() => onNewFolder()}
                 className="p-1 rounded-full bg-purple-600 hover:bg-purple-700 text-white"
@@ -65,25 +72,27 @@ export function DocSidebar({
             </div>
           )}
         </div>
-        
+
         <div className="space-y-1">
-          {rootSections.sort((a, b) => (a.order || 0) - (b.order || 0)).map(section => (
-            <SidebarItem 
-              key={section.id}
-              section={section}
-              sections={sections}
-              activeSection={activeSection}
-              setActiveSection={setActiveSection}
-              isAdmin={isAdmin}
-              expandedFolders={expandedFolders}
-              toggleFolder={toggleFolder}
-              onDeleteSection={onDeleteSection}
-              onNewSection={onNewSection}
-              onNewFolder={onNewFolder}
-              onMoveSection={onMoveSection}
-              level={0}
-            />
-          ))}
+          {rootSections
+            .sort((a, b) => (a.order || 0) - (b.order || 0))
+            .map(section => (
+              <SidebarItem
+                key={section.id}
+                section={section}
+                sections={sections}
+                activeSection={activeSection}
+                setActiveSection={setActiveSection}
+                isAdmin={isAdmin}
+                expandedFolders={expandedFolders}
+                toggleFolder={toggleFolder}
+                onDeleteSection={onDeleteSection}
+                onNewSection={onNewSection}
+                onNewFolder={onNewFolder}
+                onMoveSection={onMoveSection}
+                level={0}
+              />
+            ))}
         </div>
       </div>
     </DndProvider>
@@ -117,17 +126,17 @@ function SidebarItem({
   onNewSection,
   onNewFolder,
   onMoveSection,
-  level
+  level,
 }: SidebarItemProps) {
   // Configuração do drag-and-drop
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'DOC_ITEM',
     item: { id: section.id },
-    collect: (monitor) => ({
+    collect: monitor => ({
       isDragging: !!monitor.isDragging(),
     }),
   }));
-  
+
   const [{ isOver, canDrop }, drop] = useDrop(() => ({
     accept: 'DOC_ITEM',
     drop: (item: { id: string }) => {
@@ -136,62 +145,59 @@ function SidebarItem({
         onMoveSection(item.id, targetId);
       }
     },
-    canDrop: (item) => item.id !== section.id,
-    collect: (monitor) => ({
+    canDrop: item => item.id !== section.id,
+    collect: monitor => ({
       isOver: !!monitor.isOver(),
       canDrop: !!monitor.canDrop(),
     }),
   }));
-  
+
   // Encontrar filhos desta seção se for uma pasta
   const children = sections.filter(s => s.parentId === section.id);
   const isExpanded = expandedFolders[section.id];
-  
+
   // Referência que combina drag e drop
   const itemRef = (el: HTMLDivElement) => {
     drag(el);
     drop(el);
   };
-  
+
   return (
     <div>
-      <div 
+      <div
         ref={itemRef}
         className={cn(
-          "flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer",
-          section.id === activeSection ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white",
-          isDragging && "opacity-50",
-          isOver && canDrop && "bg-zinc-700 border border-dashed border-zinc-500",
+          'flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer',
+          section.id === activeSection
+            ? 'bg-zinc-800 text-white'
+            : 'text-zinc-400 hover:text-white',
+          isDragging && 'opacity-50',
+          isOver && canDrop && 'bg-zinc-700 border border-dashed border-zinc-500',
           `ml-${level * 4}`
         )}
       >
         {section.isFolder ? (
-          <button 
-            onClick={() => toggleFolder(section.id)}
-            className="flex items-center flex-1"
-          >
-            {isExpanded ? 
-              <FolderOpenIcon className="h-4 w-4 mr-2 text-yellow-400" /> : 
+          <button onClick={() => toggleFolder(section.id)} className="flex items-center flex-1">
+            {isExpanded ? (
+              <FolderOpenIcon className="h-4 w-4 mr-2 text-yellow-400" />
+            ) : (
               <FolderIcon className="h-4 w-4 mr-2 text-yellow-400" />
-            }
+            )}
             <span>{section.title}</span>
           </button>
         ) : (
-          <div 
-            className="flex items-center flex-1"
-            onClick={() => setActiveSection(section.id)}
-          >
+          <div className="flex items-center flex-1" onClick={() => setActiveSection(section.id)}>
             <FileIcon className="h-4 w-4 mr-2 text-blue-400" />
             <span>{section.title}</span>
           </div>
         )}
-        
+
         {isAdmin && (
           <div className="flex items-center">
             {section.isFolder && (
               <div className="flex space-x-1">
                 <button
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     onNewSection(section.id);
                   }}
@@ -201,7 +207,7 @@ function SidebarItem({
                   <PlusIcon className="h-3 w-3" />
                 </button>
                 <button
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     onNewFolder(section.id);
                   }}
@@ -213,7 +219,7 @@ function SidebarItem({
               </div>
             )}
             <button
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation();
                 onDeleteSection(section.id);
               }}
@@ -225,26 +231,28 @@ function SidebarItem({
           </div>
         )}
       </div>
-      
+
       {section.isFolder && isExpanded && (
         <div className="pl-2">
-          {children.sort((a, b) => (a.order || 0) - (b.order || 0)).map(child => (
-            <SidebarItem
-              key={child.id}
-              section={child}
-              sections={sections}
-              activeSection={activeSection}
-              setActiveSection={setActiveSection}
-              isAdmin={isAdmin}
-              expandedFolders={expandedFolders}
-              toggleFolder={toggleFolder}
-              onDeleteSection={onDeleteSection}
-              onNewSection={onNewSection}
-              onNewFolder={onNewFolder}
-              onMoveSection={onMoveSection}
-              level={level + 1}
-            />
-          ))}
+          {children
+            .sort((a, b) => (a.order || 0) - (b.order || 0))
+            .map(child => (
+              <SidebarItem
+                key={child.id}
+                section={child}
+                sections={sections}
+                activeSection={activeSection}
+                setActiveSection={setActiveSection}
+                isAdmin={isAdmin}
+                expandedFolders={expandedFolders}
+                toggleFolder={toggleFolder}
+                onDeleteSection={onDeleteSection}
+                onNewSection={onNewSection}
+                onNewFolder={onNewFolder}
+                onMoveSection={onMoveSection}
+                level={level + 1}
+              />
+            ))}
         </div>
       )}
     </div>

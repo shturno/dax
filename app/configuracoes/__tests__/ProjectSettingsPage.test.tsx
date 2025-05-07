@@ -38,11 +38,10 @@ describe('ProjectSettingsPage', () => {
         <ProjectSettingsPage />
       </ThemeColorProvider>
     );
-    
+
     expect(screen.getByText('Configurações do Projeto')).toBeInTheDocument();
     expect(screen.getByLabelText('Nome do Projeto')).toBeInTheDocument();
     expect(screen.getByLabelText('Descrição')).toBeInTheDocument();
     expect(screen.getByText('Salvar Alterações')).toBeInTheDocument();
   });
-
 });

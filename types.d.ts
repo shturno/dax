@@ -1,4 +1,4 @@
-declare module "cookie" {
+declare module 'cookie' {
   export interface CookieSerializeOptions {
     domain?: string;
     encode?: (value: string) => string;
@@ -6,10 +6,10 @@ declare module "cookie" {
     httpOnly?: boolean;
     maxAge?: number;
     path?: string;
-    sameSite?: boolean | "lax" | "strict" | "none";
+    sameSite?: boolean | 'lax' | 'strict' | 'none';
     secure?: boolean;
     signed?: boolean;
   }
 }
 
-import { DefaultSession } from "next-auth"
+import { DefaultSession } from 'next-auth';

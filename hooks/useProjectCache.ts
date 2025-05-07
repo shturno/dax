@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { logger } from '@/utils/logger';
+import { safeFetch } from '@/utils/api-helpers';
 
 interface Project {
   _id: string;
@@ -34,7 +35,7 @@ export function useProjectCache() {
   const setCachedProject = useCallback((project: Project) => {
     projectCache.set(project._id, {
       data: project,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
     logger.info('Projeto armazenado em cache', { projectId: project._id });
   }, []);
@@ -49,126 +50,138 @@ export function useProjectCache() {
     }
   }, []);
 
-  const fetchProject = useCallback(async (projectId: string): Promise<Project> => {
-    setIsLoading(true);
-    setError(null);
+  const fetchProject = useCallback(
+    async (projectId: string): Promise<Project> => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      // Verificar cache primeiro
-      const cached = getCachedProject(projectId);
-      if (cached) {
-        return cached;
-      }
-
-      logger.info('Buscando projeto do servidor', { projectId });
-      
-      // Se o ID for "current", usar o endpoint de projeto atual
-      const endpoint = projectId === "current" 
-        ? "/api/projects" 
-        : `/api/projects/${projectId}`;
-      
-      const response = await fetch(endpoint, {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache'
+      try {
+        // Verificar cache primeiro
+        const cached = getCachedProject(projectId);
+        if (cached) {
+          return cached;
         }
-      });
 
-      const responseData = await response.json();
+        logger.info('Buscando projeto do servidor', { projectId });
 
-      if (!response.ok) {
-        logger.error(`HTTP ${response.status}: ${responseData.error || 'Erro desconhecido'}`, { 
-          projectId,
-          status: response.status,
-          statusText: response.statusText,
-          responseData
+        // Se o ID for "current", usar o endpoint de projeto atual
+        const endpoint = projectId === 'current' ? '/api/new-path' : `/api/new-path/${projectId}`;
+
+        const { response, data: responseData } = await safeFetch(endpoint, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+          },
         });
-        throw new Error(responseData.error || `Falha ao buscar projeto: ${response.statusText}`);
-      }
+        
+        if (response && !response.ok) {
+          logger.error(`HTTP ${response.status}: ${responseData.error || 'Erro desconhecido'}`, {
+            projectId,
+            status: response.status,
+            statusText: response.statusText,
+            responseData,
+          });
+          throw new Error(responseData.error || `Falha ao buscar projeto: ${response.statusText}`);
+        }
+        
+        if (!response) {
+          logger.error('Falha na conexão com o servidor', { projectId, responseData });
+          throw new Error(responseData.error || 'Falha na conexão com o servidor');
+        }
+        // Ajustar para lidar com o formato de resposta quando o ID é "current"
+        const project =
+          responseData.project || (responseData.success ? responseData.project : null);
 
-      // Ajustar para lidar com o formato de resposta quando o ID é "current"
-      const project = responseData.project || (responseData.success ? responseData.project : null);
+        if (!project) {
+          logger.error('Resposta da API inválida', {
+            projectId,
+            responseData,
+          });
+          throw new Error('Resposta da API inválida');
+        }
 
-      if (!project) {
-        logger.error('Resposta da API inválida', { 
+        setCachedProject(project);
+        return project;
+      } catch (err) {
+        const error = err as Error;
+        logger.error('Erro ao buscar projeto', {
+          error: error.message,
+          stack: error.stack,
           projectId,
-          responseData
+          timestamp: new Date().toISOString(),
         });
-        throw new Error('Resposta da API inválida');
+        setError(error);
+        throw error;
+      } finally {
+        setIsLoading(false);
       }
+    },
+    [getCachedProject, setCachedProject]
+  );
 
-      setCachedProject(project);
-      return project;
-    } catch (err) {
-      const error = err as Error;
-      logger.error('Erro ao buscar projeto', { 
-        error: error.message,
-        stack: error.stack,
-        projectId,
-        timestamp: new Date().toISOString()
-      });
-      setError(error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [getCachedProject, setCachedProject]);
+  const updateProject = useCallback(
+    async (projectId: string, updates: Partial<Project>): Promise<Project> => {
+      setIsLoading(true);
+      setError(null);
 
-  const updateProject = useCallback(async (projectId: string, updates: Partial<Project>): Promise<Project> => {
-    setIsLoading(true);
-    setError(null);
+      try {
+        if (!projectId) {
+          throw new Error('ID do projeto é obrigatório');
+        }
 
-    try {
-      if (!projectId) {
-        throw new Error("ID do projeto é obrigatório");
-      }
+        logger.info('Atualizando projeto', { projectId, updates });
+        const { response, data: responseData } = await safeFetch(`/api/new-path/${projectId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache',
+          },
+          body: JSON.stringify(updates),
+        });
+        
+        if (response && !response.ok) {
+          logger.error(`HTTP ${response.status}: ${responseData.error || 'Erro desconhecido'}`, {
+            projectId,
+            status: response.status,
+            statusText: response.statusText,
+            responseData,
+          });
+          throw new Error(
+            responseData.error || `Falha ao atualizar projeto: ${response.statusText}`
+          );
+        }
+        
+        if (!response) {
+          logger.error('Falha na conexão com o servidor', { projectId, responseData });
+          throw new Error(responseData.error || 'Falha na conexão com o servidor');
+        }
 
-      logger.info('Atualizando projeto', { projectId, updates });
-      const response = await fetch(`/api/projects/${projectId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache'
-        },
-        body: JSON.stringify(updates)
-      });
+        if (!responseData.project) {
+          logger.error('Resposta da API inválida após atualização', {
+            projectId,
+            responseData,
+          });
+          throw new Error('Resposta da API inválida após atualização');
+        }
 
-      const responseData = await response.json();
-
-      if (!response.ok) {
-        logger.error(`HTTP ${response.status}: ${responseData.error || 'Erro desconhecido'}`, { 
+        setCachedProject(responseData.project);
+        return responseData.project;
+      } catch (err) {
+        const error = err as Error;
+        logger.error('Erro ao atualizar projeto', {
+          error: error.message,
+          stack: error.stack,
           projectId,
-          status: response.status,
-          statusText: response.statusText,
-          responseData
+          timestamp: new Date().toISOString(),
         });
-        throw new Error(responseData.error || `Falha ao atualizar projeto: ${response.statusText}`);
+        setError(error);
+        throw error;
+      } finally {
+        setIsLoading(false);
       }
-
-      if (!responseData.project) {
-        logger.error('Resposta da API inválida após atualização', { 
-          projectId,
-          responseData
-        });
-        throw new Error('Resposta da API inválida após atualização');
-      }
-
-      setCachedProject(responseData.project);
-      return responseData.project;
-    } catch (err) {
-      const error = err as Error;
-      logger.error('Erro ao atualizar projeto', { 
-        error: error.message,
-        stack: error.stack,
-        projectId,
-        timestamp: new Date().toISOString()
-      });
-      setError(error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [setCachedProject]);
+    },
+    [setCachedProject]
+  );
 
   // Limpar cache quando o componente desmontar
   useEffect(() => {
@@ -183,6 +196,6 @@ export function useProjectCache() {
     updateProject,
     invalidateCache,
     isLoading,
-    error
+    error,
   };
-} 
+}

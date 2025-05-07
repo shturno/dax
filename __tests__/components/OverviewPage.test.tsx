@@ -1,13 +1,13 @@
 // __tests__/components/OverviewPage.test.tsx
 import { render, screen } from '@testing-library/react';
-import * as React from "react";
+import * as React from 'react';
 jest.mock('@/hooks/useProjectCache', () => ({
   useProjectCache: () => ({
     isLoading: false,
     isError: false,
     projects: [
       { id: '1', name: 'Projeto Teste' },
-      { id: '2', name: 'Outro Projeto' }
+      { id: '2', name: 'Outro Projeto' },
     ],
     refetch: jest.fn(),
   }),
@@ -56,8 +56,8 @@ describe('OverviewPage', () => {
       }),
     }));
     // Reimporte o React e o OverviewPage para garantir contexto correto
-    const React = require("react");
-    const { OverviewPage: OverviewPageErro } = require("@/components/overview-page");
+    const React = require('react');
+    const { OverviewPage: OverviewPageErro } = require('@/components/overview-page');
     render(React.createElement(OverviewPageErro));
     expect(await screen.findByText('Erro ao carregar projetos')).toBeInTheDocument();
   });

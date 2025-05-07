@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom';
 
 // Configuração global do Jest
 global.console = {
@@ -48,11 +48,11 @@ jest.mock('@upstash/redis', () => ({
     del: jest.fn(),
     keys: jest.fn(),
   })),
-}))
+}));
 
 // Mock do MongoDB
 jest.mock('mongodb', () => ({
   MongoClient: {
     connect: jest.fn(),
   },
-})) 
+}));

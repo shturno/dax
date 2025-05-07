@@ -1,7 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen } from '@testing-library/react';
 
 const fakeResponse = {
-  ok:   false,
+  ok: false,
   status: 400,
   statusText: 'Bad Request',
   json: async () => ({ error: 'something went wrong' }),
@@ -20,7 +20,7 @@ afterAll(() => {
   global.fetch = undefined;
 });
 
-jest.mock("@/hooks/useProjectCache", () => ({
+jest.mock('@/hooks/useProjectCache', () => ({
   useProjectCache: () => ({
     isLoading: false,
     isError: true,
@@ -28,10 +28,10 @@ jest.mock("@/hooks/useProjectCache", () => ({
     refetch: jest.fn(),
   }),
 }));
-import { OverviewPage } from "../../components/overview-page";
+import { OverviewPage } from '../../components/overview-page';
 
-describe("OverviewPage (error)", () => {
-  it("deve lidar com erro de carregamento", async () => {
+describe('OverviewPage (error)', () => {
+  it('deve lidar com erro de carregamento', async () => {
     render(<OverviewPage />);
     // Usa regex para buscar substring, inclui mensagem de erro e botão
     expect(await screen.findByText(/Erro ao carregar projetos/i)).toBeInTheDocument();

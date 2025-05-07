@@ -10,7 +10,9 @@ describe('cache utils', () => {
   });
 
   it('should not throw when calling setCache', async () => {
-    await expect(cache.setCache('test-key', { foo: 'bar' }, cache.CACHE_TTL.SHORT)).resolves.not.toThrow();
+    await expect(
+      cache.setCache('test-key', { foo: 'bar' }, cache.CACHE_TTL.SHORT)
+    ).resolves.not.toThrow();
   });
 
   it('should not throw when calling invalidateCache', async () => {
@@ -19,6 +21,8 @@ describe('cache utils', () => {
 
   it('should not throw when calling getOrSetCache', async () => {
     const fetchFn = async () => ({ bar: 'baz' });
-    await expect(cache.getOrSetCache('test-key', fetchFn, cache.CACHE_TTL.SHORT)).resolves.not.toThrow();
+    await expect(
+      cache.getOrSetCache('test-key', fetchFn, cache.CACHE_TTL.SHORT)
+    ).resolves.not.toThrow();
   });
 });

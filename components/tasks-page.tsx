@@ -1,160 +1,177 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Plus, X, Pencil } from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { toast } from "@/components/ui/use-toast"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Plus, X, Pencil } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { toast } from '@/components/ui/use-toast';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type Task = {
-  id: string
-  title: string
-  description: string
-  priority: "Baixa" | "Média" | "Alta"
-  assignee: string
-  tags: string[]
-}
+  id: string;
+  title: string;
+  description: string;
+  priority: 'Baixa' | 'Média' | 'Alta';
+  assignee: string;
+  tags: string[];
+};
 
 type Column = {
-  id: "todo" | "doing" | "done"
-  title: string
-  tasks: Task[]
-}
+  id: 'todo' | 'doing' | 'done';
+  title: string;
+  tasks: Task[];
+};
 
 export function TasksPage() {
   const [columns, setColumns] = useState<Column[]>([
     {
-      id: "todo",
-      title: "A Fazer",
+      id: 'todo',
+      title: 'A Fazer',
       tasks: [
         {
-          id: "1",
-          title: "Implementar suporte a extensões",
-          description: "Criar sistema de plugins para extensibilidade",
-          priority: "Alta",
-          assignee: "Ana Silva",
-          tags: ["Feature", "Arquitetura"],
+          id: '1',
+          title: 'Implementar suporte a extensões',
+          description: 'Criar sistema de plugins para extensibilidade',
+          priority: 'Alta',
+          assignee: 'Ana Silva',
+          tags: ['Feature', 'Arquitetura'],
         },
         {
-          id: "2",
-          title: "Adicionar temas personalizáveis",
-          description: "Permitir que usuários criem e compartilhem temas",
-          priority: "Baixa",
-          assignee: "Carlos Mendes",
-          tags: ["UI", "UX"],
+          id: '2',
+          title: 'Adicionar temas personalizáveis',
+          description: 'Permitir que usuários criem e compartilhem temas',
+          priority: 'Baixa',
+          assignee: 'Carlos Mendes',
+          tags: ['UI', 'UX'],
         },
       ],
     },
     {
-      id: "doing",
-      title: "Em Andamento",
+      id: 'doing',
+      title: 'Em Andamento',
       tasks: [
         {
-          id: "4",
-          title: "Melhorar performance do editor",
-          description: "Otimizar renderização para arquivos grandes",
-          priority: "Média",
-          assignee: "Pedro Santos",
-          tags: ["Performance", "Core"],
+          id: '4',
+          title: 'Melhorar performance do editor',
+          description: 'Otimizar renderização para arquivos grandes',
+          priority: 'Média',
+          assignee: 'Pedro Santos',
+          tags: ['Performance', 'Core'],
         },
       ],
     },
     {
-      id: "done",
-      title: "Concluído",
+      id: 'done',
+      title: 'Concluído',
       tasks: [
         {
-          id: "6",
-          title: "Setup inicial do projeto",
-          description: "Configurar estrutura base do editor",
-          priority: "Alta",
-          assignee: "Lucas Ferreira",
-          tags: ["Infraestrutura"],
+          id: '6',
+          title: 'Setup inicial do projeto',
+          description: 'Configurar estrutura base do editor',
+          priority: 'Alta',
+          assignee: 'Lucas Ferreira',
+          tags: ['Infraestrutura'],
         },
       ],
     },
-  ])
+  ]);
 
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isEditMode, setIsEditMode] = useState(false)
-  const [currentTaskId, setCurrentTaskId] = useState<string | null>(null)
-  const [currentColumnId, setCurrentColumnId] = useState<"todo" | "doing" | "done">("todo")
-  const [newTask, setNewTask] = useState<Omit<Task, "id">>({
-    title: "",
-    description: "",
-    priority: "Média",
-    assignee: "",
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
+  const [currentColumnId, setCurrentColumnId] = useState<'todo' | 'doing' | 'done'>('todo');
+  const [newTask, setNewTask] = useState<Omit<Task, 'id'>>({
+    title: '',
+    description: '',
+    priority: 'Média',
+    assignee: '',
     tags: [],
-  })
-  const [newTag, setNewTag] = useState("")
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [taskToDelete, setTaskToDelete] = useState<{ id: string; columnId: string } | null>(null)
+  });
+  const [newTag, setNewTag] = useState('');
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<{ id: string; columnId: string } | null>(null);
 
   // Carregar dados do localStorage
   useEffect(() => {
-    const savedColumns = localStorage.getItem("tasks")
+    const savedColumns = localStorage.getItem('tasks');
     if (savedColumns) {
       try {
-        setColumns(JSON.parse(savedColumns))
+        setColumns(JSON.parse(savedColumns));
       } catch (e) {
-        console.error("Erro ao carregar tarefas:", e)
+        console.error('Erro ao carregar tarefas:', e);
       }
     }
-  }, [])
+  }, []);
 
   // Salvar dados no localStorage
   useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(columns))
-  }, [columns])
+    localStorage.setItem('tasks', JSON.stringify(columns));
+  }, [columns]);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "Alta":
-        return "bg-red-500 hover:bg-red-600"
-      case "Média":
-        return "bg-amber-500 hover:bg-amber-600"
-      case "Baixa":
-        return "bg-green-500 hover:bg-green-600"
+      case 'Alta':
+        return 'bg-red-500 hover:bg-red-600';
+      case 'Média':
+        return 'bg-amber-500 hover:bg-amber-600';
+      case 'Baixa':
+        return 'bg-green-500 hover:bg-green-600';
       default:
-        return ""
+        return '';
     }
-  }
+  };
 
   const handleAddTask = () => {
-    if (!newTask.title) return
+    if (!newTask.title) return;
 
     if (isEditMode && currentTaskId) {
       // Modo de edição
-      const updatedColumns = columns.map((column) => {
-        const taskIndex = column.tasks.findIndex((task) => task.id === currentTaskId)
+      const updatedColumns = columns.map(column => {
+        const taskIndex = column.tasks.findIndex(task => task.id === currentTaskId);
         if (taskIndex !== -1) {
-          const updatedTasks = [...column.tasks]
+          const updatedTasks = [...column.tasks];
           updatedTasks[taskIndex] = {
             ...updatedTasks[taskIndex],
             ...newTask,
-          }
+          };
           return {
             ...column,
             tasks: updatedTasks,
-          }
+          };
         }
-        return column
-      })
-      setColumns(updatedColumns)
+        return column;
+      });
+      setColumns(updatedColumns);
       toast({
-        title: "Tarefa atualizada",
-        description: "A tarefa foi atualizada com sucesso.",
-      })
+        title: 'Tarefa atualizada',
+        description: 'A tarefa foi atualizada com sucesso.',
+      });
     } else {
       // Modo de adição
-      const updatedColumns = columns.map((column) => {
+      const updatedColumns = columns.map(column => {
         if (column.id === currentColumnId) {
           return {
             ...column,
@@ -165,113 +182,113 @@ export function TasksPage() {
                 ...newTask,
               },
             ],
-          }
+          };
         }
-        return column
-      })
-      setColumns(updatedColumns)
+        return column;
+      });
+      setColumns(updatedColumns);
       toast({
-        title: "Tarefa adicionada",
-        description: "A nova tarefa foi adicionada com sucesso.",
-      })
+        title: 'Tarefa adicionada',
+        description: 'A nova tarefa foi adicionada com sucesso.',
+      });
     }
 
-    setIsDialogOpen(false)
-    setIsEditMode(false)
-    setCurrentTaskId(null)
+    setIsDialogOpen(false);
+    setIsEditMode(false);
+    setCurrentTaskId(null);
     setNewTask({
-      title: "",
-      description: "",
-      priority: "Média",
-      assignee: "",
+      title: '',
+      description: '',
+      priority: 'Média',
+      assignee: '',
       tags: [],
-    })
-    setNewTag("")
-  }
+    });
+    setNewTag('');
+  };
 
   const handleEditTask = (task: Task, columnId: string) => {
-    setIsEditMode(true)
-    setCurrentTaskId(task.id)
-    setCurrentColumnId(columnId as "todo" | "doing" | "done")
+    setIsEditMode(true);
+    setCurrentTaskId(task.id);
+    setCurrentColumnId(columnId as 'todo' | 'doing' | 'done');
     setNewTask({
       title: task.title,
       description: task.description,
       priority: task.priority,
       assignee: task.assignee,
       tags: [...task.tags],
-    })
-    setIsDialogOpen(true)
-  }
+    });
+    setIsDialogOpen(true);
+  };
 
   const handleDeleteTask = (taskId: string, columnId: string) => {
-    setTaskToDelete({ id: taskId, columnId })
-    setIsDeleteDialogOpen(true)
-  }
+    setTaskToDelete({ id: taskId, columnId });
+    setIsDeleteDialogOpen(true);
+  };
 
   const confirmDeleteTask = () => {
-    if (!taskToDelete) return
+    if (!taskToDelete) return;
 
-    const updatedColumns = columns.map((column) => {
+    const updatedColumns = columns.map(column => {
       if (column.id === taskToDelete.columnId) {
         return {
           ...column,
-          tasks: column.tasks.filter((task) => task.id !== taskToDelete.id),
-        }
+          tasks: column.tasks.filter(task => task.id !== taskToDelete.id),
+        };
       }
-      return column
-    })
+      return column;
+    });
 
-    setColumns(updatedColumns)
-    setIsDeleteDialogOpen(false)
-    setTaskToDelete(null)
+    setColumns(updatedColumns);
+    setIsDeleteDialogOpen(false);
+    setTaskToDelete(null);
     toast({
-      title: "Tarefa excluída",
-      description: "A tarefa foi excluída com sucesso.",
-    })
-  }
+      title: 'Tarefa excluída',
+      description: 'A tarefa foi excluída com sucesso.',
+    });
+  };
 
   const handleAddTag = () => {
-    if (!newTag) return
+    if (!newTag) return;
     setNewTask({
       ...newTask,
       tags: [...newTask.tags, newTag],
-    })
-    setNewTag("")
-  }
+    });
+    setNewTag('');
+  };
 
   const handleRemoveTag = (tagToRemove: string) => {
     setNewTask({
       ...newTask,
-      tags: newTask.tags.filter((tag) => tag !== tagToRemove),
-    })
-  }
+      tags: newTask.tags.filter(tag => tag !== tagToRemove),
+    });
+  };
 
   const handleMoveTask = (taskId: string, fromColumn: string, toColumn: string) => {
-    if (fromColumn === toColumn) return
+    if (fromColumn === toColumn) return;
 
-    const updatedColumns = [...columns]
-    const fromColumnIndex = updatedColumns.findIndex((col) => col.id === fromColumn)
-    const toColumnIndex = updatedColumns.findIndex((col) => col.id === toColumn)
+    const updatedColumns = [...columns];
+    const fromColumnIndex = updatedColumns.findIndex(col => col.id === fromColumn);
+    const toColumnIndex = updatedColumns.findIndex(col => col.id === toColumn);
 
-    if (fromColumnIndex === -1 || toColumnIndex === -1) return
+    if (fromColumnIndex === -1 || toColumnIndex === -1) return;
 
-    const taskIndex = updatedColumns[fromColumnIndex].tasks.findIndex((task) => task.id === taskId)
-    if (taskIndex === -1) return
+    const taskIndex = updatedColumns[fromColumnIndex].tasks.findIndex(task => task.id === taskId);
+    if (taskIndex === -1) return;
 
-    const task = updatedColumns[fromColumnIndex].tasks[taskIndex]
+    const task = updatedColumns[fromColumnIndex].tasks[taskIndex];
 
     // Remover da coluna original
-    updatedColumns[fromColumnIndex].tasks.splice(taskIndex, 1)
+    updatedColumns[fromColumnIndex].tasks.splice(taskIndex, 1);
 
     // Adicionar à nova coluna
-    updatedColumns[toColumnIndex].tasks.push(task)
+    updatedColumns[toColumnIndex].tasks.push(task);
 
-    setColumns(updatedColumns)
+    setColumns(updatedColumns);
     toast({
-      title: "Tarefa movida",
+      title: 'Tarefa movida',
       description: `A tarefa foi movida para ${updatedColumns[toColumnIndex].title}.`,
-    })
-  }
+    });
+  };
 
   return (
     <div className="space-y-4">
@@ -280,16 +297,16 @@ export function TasksPage() {
         <Button
           size="sm"
           onClick={() => {
-            setIsEditMode(false)
-            setCurrentTaskId(null)
+            setIsEditMode(false);
+            setCurrentTaskId(null);
             setNewTask({
-              title: "",
-              description: "",
-              priority: "Média",
-              assignee: "",
+              title: '',
+              description: '',
+              priority: 'Média',
+              assignee: '',
               tags: [],
-            })
-            setIsDialogOpen(true)
+            });
+            setIsDialogOpen(true);
           }}
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -298,14 +315,14 @@ export function TasksPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        {columns.map((column) => (
+        {columns.map(column => (
           <div key={column.id} className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold">{column.title}</h3>
               <Badge variant="outline">{column.tasks.length}</Badge>
             </div>
             <div className="space-y-4">
-              {column.tasks.map((task) => (
+              {column.tasks.map(task => (
                 <Card key={task.id} className="cursor-pointer transition-all hover:shadow-md">
                   <CardHeader className="p-4 pb-2">
                     <div className="flex items-start justify-between">
@@ -314,12 +331,19 @@ export function TasksPage() {
                         <Badge className={getPriorityColor(task.priority)}>{task.priority}</Badge>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Editar">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              aria-label="Editar"
+                            >
                               <Pencil className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEditTask(task, column.id)}>Editar</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditTask(task, column.id)}>
+                              Editar
+                            </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleDeleteTask(task.id, column.id)}
                               className="text-red-600"
@@ -336,7 +360,9 @@ export function TasksPage() {
                   <CardContent className="p-4 pt-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <div className="flex-1">
-                        <p className="text-xs text-muted-foreground">Responsável: {task.assignee}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Responsável: {task.assignee}
+                        </p>
                       </div>
                       <div className="flex flex-wrap gap-1">
                         {task.tags.map((tag, i) => (
@@ -349,18 +375,33 @@ export function TasksPage() {
 
                     {/* Botões para mover a tarefa */}
                     <div className="mt-3 flex justify-end gap-1">
-                      {column.id !== "todo" && (
-                        <Button variant="ghost" size="sm" onClick={() => handleMoveTask(task.id, column.id, "todo")} aria-label="Mover">
+                      {column.id !== 'todo' && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleMoveTask(task.id, column.id, 'todo')}
+                          aria-label="Mover"
+                        >
                           ← A Fazer
                         </Button>
                       )}
-                      {column.id !== "doing" && (
-                        <Button variant="ghost" size="sm" onClick={() => handleMoveTask(task.id, column.id, "doing")} aria-label="Mover">
-                          {column.id === "todo" ? "→" : "←"} Em Andamento
+                      {column.id !== 'doing' && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleMoveTask(task.id, column.id, 'doing')}
+                          aria-label="Mover"
+                        >
+                          {column.id === 'todo' ? '→' : '←'} Em Andamento
                         </Button>
                       )}
-                      {column.id !== "done" && (
-                        <Button variant="ghost" size="sm" onClick={() => handleMoveTask(task.id, column.id, "done")} aria-label="Mover">
+                      {column.id !== 'done' && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleMoveTask(task.id, column.id, 'done')}
+                          aria-label="Mover"
+                        >
                           Concluído →
                         </Button>
                       )}
@@ -373,17 +414,17 @@ export function TasksPage() {
                 className="w-full justify-start"
                 size="sm"
                 onClick={() => {
-                  setIsEditMode(false)
-                  setCurrentTaskId(null)
+                  setIsEditMode(false);
+                  setCurrentTaskId(null);
                   setNewTask({
-                    title: "",
-                    description: "",
-                    priority: "Média",
-                    assignee: "",
+                    title: '',
+                    description: '',
+                    priority: 'Média',
+                    assignee: '',
                     tags: [],
-                  })
-                  setCurrentColumnId(column.id)
-                  setIsDialogOpen(true)
+                  });
+                  setCurrentColumnId(column.id);
+                  setIsDialogOpen(true);
                 }}
               >
                 <Plus className="mr-2 h-4 w-4" />
@@ -398,7 +439,7 @@ export function TasksPage() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>{isEditMode ? "Editar Tarefa" : "Adicionar Nova Tarefa"}</DialogTitle>
+            <DialogTitle>{isEditMode ? 'Editar Tarefa' : 'Adicionar Nova Tarefa'}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
@@ -406,7 +447,7 @@ export function TasksPage() {
               <Input
                 id="title"
                 value={newTask.title}
-                onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                onChange={e => setNewTask({ ...newTask, title: e.target.value })}
                 placeholder="Título da tarefa"
               />
             </div>
@@ -415,7 +456,7 @@ export function TasksPage() {
               <Textarea
                 id="description"
                 value={newTask.description}
-                onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                onChange={e => setNewTask({ ...newTask, description: e.target.value })}
                 placeholder="Descrição da tarefa"
               />
             </div>
@@ -423,7 +464,9 @@ export function TasksPage() {
               <Label htmlFor="priority">Prioridade</Label>
               <Select
                 value={newTask.priority}
-                onValueChange={(value) => setNewTask({ ...newTask, priority: value as "Baixa" | "Média" | "Alta" })}
+                onValueChange={value =>
+                  setNewTask({ ...newTask, priority: value as 'Baixa' | 'Média' | 'Alta' })
+                }
               >
                 <SelectTrigger id="priority">
                   <SelectValue placeholder="Selecione a prioridade" />
@@ -440,7 +483,7 @@ export function TasksPage() {
               <Input
                 id="assignee"
                 value={newTask.assignee}
-                onChange={(e) => setNewTask({ ...newTask, assignee: e.target.value })}
+                onChange={e => setNewTask({ ...newTask, assignee: e.target.value })}
                 placeholder="Nome do responsável"
               />
             </div>
@@ -450,7 +493,7 @@ export function TasksPage() {
                 <Input
                   id="tags"
                   value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
+                  onChange={e => setNewTag(e.target.value)}
                   placeholder="Adicionar tag"
                 />
                 <Button type="button" onClick={handleAddTag} size="sm">
@@ -471,7 +514,7 @@ export function TasksPage() {
                 <Label htmlFor="column">Coluna</Label>
                 <Select
                   value={currentColumnId}
-                  onValueChange={(value) => setCurrentColumnId(value as "todo" | "doing" | "done")}
+                  onValueChange={value => setCurrentColumnId(value as 'todo' | 'doing' | 'done')}
                 >
                   <SelectTrigger id="column">
                     <SelectValue placeholder="Selecione a coluna" />
@@ -487,7 +530,7 @@ export function TasksPage() {
           </div>
           <DialogFooter>
             <Button type="submit" onClick={handleAddTask} aria-label="Salvar">
-              {isEditMode ? "Salvar Alterações" : "Adicionar Tarefa"}
+              {isEditMode ? 'Salvar Alterações' : 'Adicionar Tarefa'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -513,5 +556,5 @@ export function TasksPage() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

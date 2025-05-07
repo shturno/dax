@@ -23,7 +23,9 @@ describe('TasksPage CRUD', () => {
     const addButton = screen.getByText(/Nova Tarefa/i);
     fireEvent.click(addButton);
     fireEvent.change(screen.getByLabelText(/Título/i), { target: { value: 'Tarefa Teste' } });
-    fireEvent.change(screen.getByLabelText(/Descrição/i), { target: { value: 'Descrição de teste' } });
+    fireEvent.change(screen.getByLabelText(/Descrição/i), {
+      target: { value: 'Descrição de teste' },
+    });
     fireEvent.click(screen.getByRole('button', { name: /Salvar/i }));
     await waitFor(() => expect(screen.getByText(/Tarefa Teste/i)).toBeInTheDocument());
   });
@@ -45,7 +47,7 @@ describe('TasksPage CRUD', () => {
     });
     // Encontrar o item de menu Editar
     const menuItems = screen.getAllByRole('menuitem', { hidden: true });
-    const editMenuItem = menuItems.find((item) => item.textContent?.includes('Editar'));
+    const editMenuItem = menuItems.find(item => item.textContent?.includes('Editar'));
     if (!editMenuItem) throw new Error('Could not find Editar menu item');
     fireEvent.click(editMenuItem);
     // Preencher o formulário
@@ -74,7 +76,7 @@ describe('TasksPage CRUD', () => {
     });
     // Click the "Excluir" menu item
     const menuItems = screen.getAllByRole('menuitem', { hidden: true });
-    const deleteMenuItem = menuItems.find((item) => item.textContent?.includes('Excluir'));
+    const deleteMenuItem = menuItems.find(item => item.textContent?.includes('Excluir'));
     if (!deleteMenuItem) throw new Error('Could not find Excluir menu item');
     fireEvent.click(deleteMenuItem);
     // Confirm delete in dialog
@@ -90,12 +92,12 @@ describe('TasksPage CRUD', () => {
   it('should move a task between columns', async () => {
     // Limpar localStorage para garantir estado limpo
     localStorage.clear();
-    
+
     render(<TasksPage />);
-    
+
     // Verificar se a tarefa existe
     expect(screen.getByText('Implementar suporte a extensões')).toBeInTheDocument();
-    
+
     // Simular que a tarefa foi movida verificando que ainda existe
     await waitFor(() => {
       expect(screen.getByText('Implementar suporte a extensões')).toBeInTheDocument();
@@ -106,27 +108,30 @@ describe('TasksPage CRUD', () => {
   it('should show empty state', async () => {
     // Limpar o localStorage e definir um array vazio de tarefas
     localStorage.clear();
-    localStorage.setItem('tasks', JSON.stringify([
-      {
-        id: "todo",
-        title: "A Fazer",
-        tasks: []
-      },
-      {
-        id: "doing",
-        title: "Em Andamento",
-        tasks: []
-      },
-      {
-        id: "done",
-        title: "Concluído",
-        tasks: []
-      }
-    ]));
-    
+    localStorage.setItem(
+      'tasks',
+      JSON.stringify([
+        {
+          id: 'todo',
+          title: 'A Fazer',
+          tasks: [],
+        },
+        {
+          id: 'doing',
+          title: 'Em Andamento',
+          tasks: [],
+        },
+        {
+          id: 'done',
+          title: 'Concluído',
+          tasks: [],
+        },
+      ])
+    );
+
     // Renderizar com localStorage vazio
     render(<TasksPage />);
-    
+
     // Verificar que as colunas estão vazias (contador mostra 0)
     const todoColumn = screen.getByText('A Fazer').closest('div');
     if (todoColumn) {

@@ -1,14 +1,10 @@
 // Crie um layout específico para a seção de perfil para garantir consistência
 
-export default function ProfileLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function ProfileLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-[#000] dark:bg-[#000] text-white">
       {children}
-      
+
       {/* Script para garantir tema consistente */}
       <script
         dangerouslySetInnerHTML={{

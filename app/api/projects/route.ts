@@ -1,98 +1,113 @@
-import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
-import { logger } from "@/utils/logger"
-import { getCurrentProject } from "./projects-service"
+import { NextRequest } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { logger } from '@/utils/logger';
+import { getCurrentProject } from './projects-service';
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
+    // Remover a validação redundante do token
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      logger.warn("Tentativa de acesso não autenticada")
-      return NextResponse.json(
-        { error: "Não autorizado" },
-        { status: 401 }
-      )
+      logger.warn('Tentativa de acesso não autenticada');
+      return new Response(JSON.stringify({ error: 'Não autorizado' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
     }
 
-    const result = await getCurrentProject(session.user.id)
+    // Log para depuração
+    console.log('Sessão válida para o usuário:', session.user.id);
 
-    return NextResponse.json(
-      { success: result.success, project: result.project, error: result.error },
-      { status: result.statusCode }
-    )
+    const { db } = await (await import('@/app/config/mongodb')).connectToDatabase();
+    const { ObjectId } = await import('mongodb');
+    const ownerId = new ObjectId(session.user.id);
+    const projects = await db
+      .collection('projects')
+      .find({ ownerId })
+      .sort({ createdAt: -1 })
+      .toArray();
 
+    console.log('Projetos encontrados no banco de dados:', projects);
+
+    const formattedProjects = projects.map((project: any) => ({
+      name: project.name,
+      description: project.description,
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt,
+    }));
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        projects: formattedProjects,
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
   } catch (error) {
-    logger.error("Erro ao buscar projeto atual", { 
+    logger.error('Erro ao buscar projetos do usuário', {
       error: error instanceof Error ? error.stack : error,
-      timestamp: new Date().toISOString()
-    })
-    
-    const errorMessage = error instanceof Error ? error.message : "Erro interno do servidor"
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    )
+      timestamp: new Date().toISOString(),
+    });
+    return new Response(JSON.stringify({ error: 'Erro interno do servidor' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    // Remover a validação redundante do token
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      logger.warn("Tentativa de criar projeto sem autenticação")
-      return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+      logger.warn('Tentativa de criar projeto sem autenticação');
+      return new Response(JSON.stringify({ error: 'Não autorizado' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
     }
 
-    const body = await req.json()
-    const { createProject } = await import("./projects-service")
-    
-    const result = await createProject(session.user.id, body)
+    // Log para depuração
+    console.log('Sessão válida para o usuário:', session.user.id);
 
-    return NextResponse.json(
-      { success: result.success, project: result.project, error: result.error },
-      { status: result.statusCode }
-    )
+    const body = await req.json();
+    const { createProject } = await import('./projects-service');
+
+    const result = await createProject(session.user.id, body);
+
+    return new Response(
+      JSON.stringify({ success: result.success, project: result.project, error: result.error }),
+      { status: result.statusCode, headers: { 'Content-Type': 'application/json' } }
+    );
   } catch (error) {
-    logger.error("Erro ao criar projeto", { 
+    logger.error('Erro ao criar projeto', {
       error: error instanceof Error ? error.stack : error,
-      timestamp: new Date().toISOString()
-    })
-    return NextResponse.json(
-      { error: "Erro ao criar projeto" },
-      { status: 500 }
-    )
+      timestamp: new Date().toISOString(),
+    });
+    return new Response(JSON.stringify({ error: 'Erro ao criar projeto' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 }
 
 export async function PATCH(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    // Remover a validação redundante do token
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+      return new Response(JSON.stringify({ error: 'Não autorizado' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
     }
-    
-    const body = await req.json()
-    const { updateProject } = await import("./projects-service")
-    
-    const result = await updateProject(session.user.id, body)
 
-    return NextResponse.json(
-      { success: result.success, project: result.project, error: result.error },
-      { status: result.statusCode }
-    )
+    // Log para depuração
+    console.log('Sessão válida para o usuário:', session.user.id);
+
+    const body = await req.json();
+    const { updateProject } = await import('./projects-service');
+
+    const result = await updateProject(session.user.id, body);
+
+    return new Response(
+      JSON.stringify({ success: result.success, project: result.project, error: result.error }),
+      { status: result.statusCode, headers: { 'Content-Type': 'application/json' } }
+    );
   } catch (error) {
-    logger.error("Erro ao atualizar projeto", { 
+    logger.error('Erro ao atualizar projeto', {
       error: error instanceof Error ? error.stack : error,
-      timestamp: new Date().toISOString()
-    })
-    return NextResponse.json(
-      { error: "Erro ao atualizar projeto" },
-      { status: 500 }
-    )
+      timestamp: new Date().toISOString(),
+    });
+    return new Response(JSON.stringify({ error: 'Erro ao atualizar projeto' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 }
