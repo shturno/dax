@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
     console.log('Projetos encontrados no banco de dados:', projects);
 
     const formattedProjects = projects.map((project: any) => ({
+      _id: project._id.toString(),
       name: project.name,
       description: project.description,
       createdAt: project.createdAt,

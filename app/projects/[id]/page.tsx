@@ -26,7 +26,7 @@ export default function ProjectDetailsPage() {
     if (!id) return;
     setLoading(true);
     setError(null);
-    fetch(`/api/new-path/${id}/route`)
+    fetch(`/api/projects/${id}`)
       .then(async res => {
         if (!res.ok) {
           const data = await res.json();
