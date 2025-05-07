@@ -30,6 +30,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useProjectContext } from '@/context/ProjectContext';
 
 type RoadmapItem = {
   id: string;
@@ -55,89 +56,27 @@ export function RoadmapPage() {
     year: '2024',
   });
 
-  const [roadmapItems, setRoadmapItems] = useState<RoadmapItem[]>([
-    {
-      id: '1',
-      title: 'MVP do Editor',
-      description: 'Versão inicial com funcionalidades básicas de edição',
-      status: 'Concluído',
-      quarter: 'Q1',
-      year: '2024',
-    },
-    {
-      id: '2',
-      title: 'Integração com IA',
-      description: 'Suporte para sugestões de código usando IA',
-      status: 'Em Progresso',
-      quarter: 'Q1',
-      year: '2024',
-    },
-    {
-      id: '3',
-      title: 'Sistema de Extensões',
-      description: 'Framework para plugins e extensões de terceiros',
-      status: 'Planejado',
-      quarter: 'Q2',
-      year: '2024',
-    },
-    {
-      id: '4',
-      title: 'Colaboração em Tempo Real',
-      description: 'Edição colaborativa com múltiplos usuários',
-      status: 'Planejado',
-      quarter: 'Q2',
-      year: '2024',
-    },
-    {
-      id: '5',
-      title: 'Integração com GitHub',
-      description: 'Suporte para repositórios Git e GitHub',
-      status: 'Planejado',
-      quarter: 'Q3',
-      year: '2024',
-    },
-    {
-      id: '6',
-      title: 'Depuração Integrada',
-      description: 'Ferramentas de depuração para múltiplas linguagens',
-      status: 'Planejado',
-      quarter: 'Q3',
-      year: '2024',
-    },
-    {
-      id: '7',
-      title: 'Marketplace de Extensões',
-      description: 'Loja para descoberta e instalação de extensões',
-      status: 'Planejado',
-      quarter: 'Q4',
-      year: '2024',
-    },
-    {
-      id: '8',
-      title: 'Versão Mobile',
-      description: 'Aplicativo móvel para edição em dispositivos',
-      status: 'Planejado',
-      quarter: 'Q4',
-      year: '2024',
-    },
-  ]);
+  const { projectId } = useProjectContext();
+  const [items, setItems] = useState<RoadmapItem[]>([]);
 
   // Carregar roadmap do localStorage
   useEffect(() => {
-    const savedRoadmap = localStorage.getItem('roadmap');
-    if (savedRoadmap) {
+    if (!projectId) return;
+    const saved = localStorage.getItem(`roadmap-${projectId}`);
+    if (saved) {
       try {
-        setRoadmapItems(JSON.parse(savedRoadmap));
+        setItems(JSON.parse(saved));
       } catch (e) {
         console.error('Erro ao carregar roadmap:', e);
       }
     }
-  }, []);
+  }, [projectId]);
 
   // Salvar roadmap no localStorage
   useEffect(() => {
-    localStorage.setItem('roadmap', JSON.stringify(roadmapItems));
-  }, [roadmapItems]);
+    if (!projectId) return;
+    localStorage.setItem(`roadmap-${projectId}`, JSON.stringify(items));
+  }, [items, projectId]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -157,10 +96,10 @@ export function RoadmapPage() {
 
     if (isEditMode && currentItemId) {
       // Modo de edição
-      const updatedItems = roadmapItems.map(item =>
+      const updatedItems = items.map(item =>
         item.id === currentItemId ? { ...item, ...newItem } : item
       );
-      setRoadmapItems(updatedItems);
+      setItems(updatedItems);
       toast({
         title: 'Item atualizado',
         description: 'O item do roadmap foi atualizado com sucesso.',
@@ -171,7 +110,7 @@ export function RoadmapPage() {
         id: Date.now().toString(),
         ...newItem,
       };
-      setRoadmapItems([...roadmapItems, item]);
+      setItems([...items, item]);
       toast({
         title: 'Item adicionado',
         description: 'O novo item foi adicionado ao roadmap com sucesso.',
@@ -211,8 +150,8 @@ export function RoadmapPage() {
   const confirmDeleteItem = () => {
     if (!itemToDelete) return;
 
-    const updatedItems = roadmapItems.filter(item => item.id !== itemToDelete);
-    setRoadmapItems(updatedItems);
+    const updatedItems = items.filter(item => item.id !== itemToDelete);
+    setItems(updatedItems);
     setIsDeleteDialogOpen(false);
     setItemToDelete(null);
     toast({
@@ -222,7 +161,7 @@ export function RoadmapPage() {
   };
 
   const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
-  const years = Array.from(new Set(roadmapItems.map(item => item.year))).sort();
+  const years = Array.from(new Set(items.map(item => item.year))).sort();
 
   return (
     <div className="space-y-6">
@@ -256,7 +195,7 @@ export function RoadmapPage() {
 
         <TabsContent value="timeline" className="mt-4">
           <div className="relative space-y-8 before:absolute before:inset-0 before:left-9 before:ml-0.5 before:border-l-2 before:border-dashed before:border-muted-foreground/20">
-            {roadmapItems.map(item => (
+            {items.map(item => (
               <div key={item.id} className="flex gap-4">
                 <div className="relative mt-3 flex h-6 w-6 flex-none items-center justify-center rounded-full bg-primary text-primary-foreground shadow">
                   <div className="h-2.5 w-2.5 rounded-full bg-current" />
@@ -315,7 +254,7 @@ export function RoadmapPage() {
                       <CardTitle className="text-lg">{quarter}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {roadmapItems
+                      {items
                         .filter(item => item.quarter === quarter && item.year === year)
                         .map(item => (
                           <div key={item.id} className="space-y-2">

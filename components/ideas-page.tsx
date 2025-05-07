@@ -23,6 +23,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
+import { useProjectContext } from '@/context/ProjectContext';
 
 type Idea = {
   id: string;
@@ -36,6 +37,7 @@ type Idea = {
 };
 
 export function IdeasPage() {
+  const { projectId } = useProjectContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [tagFilter, setTagFilter] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<'votes' | 'recent'>('votes');
@@ -53,90 +55,26 @@ export function IdeasPage() {
     author: '',
   });
 
-  const [ideas, setIdeas] = useState<Idea[]>([
-    {
-      id: '1',
-      title: 'Integração com GitHub Copilot',
-      description:
-        'Adicionar suporte para GitHub Copilot como uma opção de provedor de IA para sugestões de código.',
-      votes: 42,
-      comments: 8,
-      tags: ['IA', 'Integração', 'Feature'],
-      author: 'Ana Silva',
-      createdAt: '2024-04-01T10:30:00Z',
-    },
-    {
-      id: '2',
-      title: 'Modo de foco com bloqueio de distrações',
-      description:
-        'Implementar um modo de foco que remove elementos da interface e bloqueia notificações para aumentar a produtividade.',
-      votes: 35,
-      comments: 5,
-      tags: ['UX', 'Produtividade'],
-      author: 'Carlos Mendes',
-      createdAt: '2024-04-02T14:15:00Z',
-    },
-    {
-      id: '3',
-      title: 'Suporte para múltiplos modelos de IA',
-      description:
-        'Permitir que os usuários escolham entre diferentes modelos de IA para diferentes tarefas (ex: um modelo para autocompletion, outro para explicação de código).',
-      votes: 28,
-      comments: 12,
-      tags: ['IA', 'Customização'],
-      author: 'Mariana Oliveira',
-      createdAt: '2024-04-03T09:45:00Z',
-    },
-    {
-      id: '4',
-      title: 'Extensão para análise de desempenho de código',
-      description: 'Criar uma extensão que analisa o código e sugere otimizações de performance.',
-      votes: 23,
-      comments: 3,
-      tags: ['Performance', 'Extensão'],
-      author: 'Pedro Santos',
-      createdAt: '2024-04-04T16:20:00Z',
-    },
-    {
-      id: '5',
-      title: 'Integração com Tabnine',
-      description:
-        'Adicionar suporte para Tabnine como uma alternativa para autocompletion de código.',
-      votes: 19,
-      comments: 2,
-      tags: ['IA', 'Integração'],
-      author: 'Juliana Costa',
-      createdAt: '2024-04-05T11:00:00Z',
-    },
-    {
-      id: '6',
-      title: 'Modo de apresentação para code reviews',
-      description:
-        'Adicionar um modo de apresentação que facilita a realização de code reviews em equipe.',
-      votes: 17,
-      comments: 4,
-      tags: ['Colaboração', 'Feature'],
-      author: 'Lucas Ferreira',
-      createdAt: '2024-04-06T15:30:00Z',
-    },
-  ]);
+  const [ideas, setIdeas] = useState<Idea[]>([]);
 
   // Carregar ideias do localStorage
   useEffect(() => {
-    const savedIdeas = localStorage.getItem('ideas');
-    if (savedIdeas) {
+    if (!projectId) return;
+    const saved = localStorage.getItem(`ideas-${projectId}`);
+    if (saved) {
       try {
-        setIdeas(JSON.parse(savedIdeas));
+        setIdeas(JSON.parse(saved));
       } catch (e) {
         console.error('Erro ao carregar ideias:', e);
       }
     }
-  }, []);
+  }, [projectId]);
 
   // Salvar ideias no localStorage
   useEffect(() => {
-    localStorage.setItem('ideas', JSON.stringify(ideas));
-  }, [ideas]);
+    if (!projectId) return;
+    localStorage.setItem(`ideas-${projectId}`, JSON.stringify(ideas));
+  }, [ideas, projectId]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

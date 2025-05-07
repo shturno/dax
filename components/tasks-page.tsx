@@ -29,6 +29,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useProjectContext } from '@/context/ProjectContext';
 
 type Task = {
   id: string;
@@ -46,58 +47,8 @@ type Column = {
 };
 
 export function TasksPage() {
-  const [columns, setColumns] = useState<Column[]>([
-    {
-      id: 'todo',
-      title: 'A Fazer',
-      tasks: [
-        {
-          id: '1',
-          title: 'Implementar suporte a extensões',
-          description: 'Criar sistema de plugins para extensibilidade',
-          priority: 'Alta',
-          assignee: 'Ana Silva',
-          tags: ['Feature', 'Arquitetura'],
-        },
-        {
-          id: '2',
-          title: 'Adicionar temas personalizáveis',
-          description: 'Permitir que usuários criem e compartilhem temas',
-          priority: 'Baixa',
-          assignee: 'Carlos Mendes',
-          tags: ['UI', 'UX'],
-        },
-      ],
-    },
-    {
-      id: 'doing',
-      title: 'Em Andamento',
-      tasks: [
-        {
-          id: '4',
-          title: 'Melhorar performance do editor',
-          description: 'Otimizar renderização para arquivos grandes',
-          priority: 'Média',
-          assignee: 'Pedro Santos',
-          tags: ['Performance', 'Core'],
-        },
-      ],
-    },
-    {
-      id: 'done',
-      title: 'Concluído',
-      tasks: [
-        {
-          id: '6',
-          title: 'Setup inicial do projeto',
-          description: 'Configurar estrutura base do editor',
-          priority: 'Alta',
-          assignee: 'Lucas Ferreira',
-          tags: ['Infraestrutura'],
-        },
-      ],
-    },
-  ]);
+  const { projectId } = useProjectContext();
+  const [columns, setColumns] = useState<Column[]>([]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -116,7 +67,8 @@ export function TasksPage() {
 
   // Carregar dados do localStorage
   useEffect(() => {
-    const savedColumns = localStorage.getItem('tasks');
+    if (!projectId) return;
+    const savedColumns = localStorage.getItem(`tasks-${projectId}`);
     if (savedColumns) {
       try {
         setColumns(JSON.parse(savedColumns));
@@ -124,12 +76,13 @@ export function TasksPage() {
         console.error('Erro ao carregar tarefas:', e);
       }
     }
-  }, []);
+  }, [projectId]);
 
   // Salvar dados no localStorage
   useEffect(() => {
-    localStorage.setItem('tasks', JSON.stringify(columns));
-  }, [columns]);
+    if (!projectId) return;
+    localStorage.setItem(`tasks-${projectId}`, JSON.stringify(columns));
+  }, [columns, projectId]);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {

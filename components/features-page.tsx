@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
+import { useProjectContext } from '@/context/ProjectContext';
 
 type Feature = {
   id: string;
@@ -59,89 +60,27 @@ export function FeaturesPage() {
     type: 'Core',
   });
 
-  const [features, setFeatures] = useState<Feature[]>([
-    {
-      id: '1',
-      title: 'Editor de código com syntax highlighting',
-      description: 'Suporte para destacamento de sintaxe em múltiplas linguagens de programação',
-      priority: 'Alta',
-      status: 'Concluído',
-      type: 'Core',
-    },
-    {
-      id: '2',
-      title: 'Autocompletion com IA',
-      description: 'Sugestões de código inteligentes baseadas em contexto usando IA',
-      priority: 'Alta',
-      status: 'Em Progresso',
-      type: 'IA',
-    },
-    {
-      id: '3',
-      title: 'Sistema de temas personalizáveis',
-      description: 'Permitir que usuários criem e compartilhem temas visuais',
-      priority: 'Média',
-      status: 'Planejado',
-      type: 'UI/UX',
-    },
-    {
-      id: '4',
-      title: 'Otimização para arquivos grandes',
-      description: 'Melhorar performance ao trabalhar com arquivos de código extensos',
-      priority: 'Alta',
-      status: 'Em Progresso',
-      type: 'Performance',
-    },
-    {
-      id: '5',
-      title: 'Integração com GitHub',
-      description: 'Suporte para clonar, commitar e fazer push para repositórios GitHub',
-      priority: 'Média',
-      status: 'Planejado',
-      type: 'Integração',
-    },
-    {
-      id: '6',
-      title: 'Terminal integrado',
-      description: 'Terminal embutido para executar comandos sem sair do editor',
-      priority: 'Média',
-      status: 'Planejado',
-      type: 'Core',
-    },
-    {
-      id: '7',
-      title: 'Colaboração em tempo real',
-      description: 'Edição colaborativa com múltiplos usuários simultaneamente',
-      priority: 'Alta',
-      status: 'Planejado',
-      type: 'Core',
-    },
-    {
-      id: '8',
-      title: 'Depurador integrado',
-      description: 'Ferramentas de depuração para múltiplas linguagens de programação',
-      priority: 'Baixa',
-      status: 'Planejado',
-      type: 'Core',
-    },
-  ]);
+  const { projectId } = useProjectContext();
+  const [features, setFeatures] = useState<Feature[]>([]);
 
   // Carregar features do localStorage
   useEffect(() => {
-    const savedFeatures = localStorage.getItem('features');
-    if (savedFeatures) {
+    if (!projectId) return;
+    const saved = localStorage.getItem(`features-${projectId}`);
+    if (saved) {
       try {
-        setFeatures(JSON.parse(savedFeatures));
+        setFeatures(JSON.parse(saved));
       } catch (e) {
         console.error('Erro ao carregar features:', e);
       }
     }
-  }, []);
+  }, [projectId]);
 
   // Salvar features no localStorage
   useEffect(() => {
-    localStorage.setItem('features', JSON.stringify(features));
-  }, [features]);
+    if (!projectId) return;
+    localStorage.setItem(`features-${projectId}`, JSON.stringify(features));
+  }, [features, projectId]);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {

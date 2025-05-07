@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
+import { useProjectContext } from '@/context/ProjectContext';
 
 type Feedback = {
   id: string;
@@ -44,6 +45,7 @@ type Feedback = {
 };
 
 export function FeedbackPage() {
+  const { projectId } = useProjectContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [typeFilter, setTypeFilter] = useState<string[]>([]);
@@ -64,97 +66,26 @@ export function FeedbackPage() {
     author: '',
   });
 
-  const [feedbacks, setFeedbacks] = useState<Feedback[]>([
-    {
-      id: '1',
-      title: 'Editor trava com arquivos muito grandes',
-      description:
-        'Quando tento abrir arquivos com mais de 10.000 linhas, o editor fica lento e eventualmente trava.',
-      votes: 38,
-      comments: 12,
-      status: 'Em Análise',
-      type: 'Bug',
-      author: 'Carlos Mendes',
-      createdAt: '2024-04-01T10:30:00Z',
-    },
-    {
-      id: '2',
-      title: 'Adicionar suporte para TypeScript 5.0',
-      description:
-        'Seria ótimo ter suporte para as novas funcionalidades do TypeScript 5.0, especialmente os decorators.',
-      votes: 27,
-      comments: 5,
-      status: 'Planejado',
-      type: 'Sugestão',
-      author: 'Ana Silva',
-      createdAt: '2024-04-02T14:15:00Z',
-    },
-    {
-      id: '3',
-      title: 'Como configurar múltiplos modelos de IA?',
-      description:
-        'Estou tentando configurar diferentes modelos de IA para diferentes linguagens, mas não encontro essa opção. É possível?',
-      votes: 15,
-      comments: 8,
-      status: 'Novo',
-      type: 'Pergunta',
-      author: 'Mariana Oliveira',
-      createdAt: '2024-04-03T09:45:00Z',
-    },
-    {
-      id: '4',
-      title: 'Sugestões de IA não funcionam com Python',
-      description:
-        'As sugestões de código com IA funcionam bem com JavaScript, mas não aparecem quando estou editando arquivos Python.',
-      votes: 32,
-      comments: 7,
-      status: 'Em Análise',
-      type: 'Bug',
-      author: 'Pedro Santos',
-      createdAt: '2024-04-04T16:20:00Z',
-    },
-    {
-      id: '5',
-      title: 'Adicionar tema de alto contraste',
-      description:
-        'Seria útil ter um tema de alto contraste para melhorar a acessibilidade para usuários com deficiência visual.',
-      votes: 21,
-      comments: 3,
-      status: 'Implementado',
-      type: 'Sugestão',
-      author: 'Juliana Costa',
-      createdAt: '2024-04-05T11:00:00Z',
-    },
-    {
-      id: '6',
-      title: 'É possível usar o editor offline?',
-      description:
-        'Preciso usar o editor em ambientes sem acesso à internet. Existe alguma forma de usá-lo offline?',
-      votes: 18,
-      comments: 6,
-      status: 'Fechado',
-      type: 'Pergunta',
-      author: 'Lucas Ferreira',
-      createdAt: '2024-04-06T15:30:00Z',
-    },
-  ]);
+  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
 
   // Carregar feedbacks do localStorage
   useEffect(() => {
-    const savedFeedbacks = localStorage.getItem('feedbacks');
-    if (savedFeedbacks) {
+    if (!projectId) return;
+    const saved = localStorage.getItem(`feedbacks-${projectId}`);
+    if (saved) {
       try {
-        setFeedbacks(JSON.parse(savedFeedbacks));
+        setFeedbacks(JSON.parse(saved));
       } catch (e) {
         console.error('Erro ao carregar feedbacks:', e);
       }
     }
-  }, []);
+  }, [projectId]);
 
   // Salvar feedbacks no localStorage
   useEffect(() => {
-    localStorage.setItem('feedbacks', JSON.stringify(feedbacks));
-  }, [feedbacks]);
+    if (!projectId) return;
+    localStorage.setItem(`feedbacks-${projectId}`, JSON.stringify(feedbacks));
+  }, [feedbacks, projectId]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

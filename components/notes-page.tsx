@@ -24,6 +24,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/use-toast';
+import { useProjectContext } from '@/context/ProjectContext';
 
 type Note = {
   id: string;
@@ -34,47 +35,16 @@ type Note = {
 };
 
 export function NotesPage() {
+  const { projectId } = useProjectContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [notes, setNotes] = useState<Note[]>([
-    {
-      id: '1',
-      title: 'Arquitetura do Editor',
-      content:
-        '# Arquitetura do Editor\n\nO editor será construído usando um modelo de componentes modular para facilitar extensões.\n\n## Componentes Principais\n\n- **Core Editor**: Responsável pela edição de texto e manipulação de arquivos\n- **Plugin System**: Framework para extensões de terceiros\n- **UI Layer**: Interface do usuário customizável\n\n## Tecnologias\n\n- React/Next.js para a interface\n- Monaco Editor como base para o editor de código\n- WebAssembly para componentes de alta performance',
-      createdAt: '2024-04-01T10:30:00Z',
-      updatedAt: '2024-04-02T14:15:00Z',
-    },
-    {
-      id: '2',
-      title: 'Integração com IA',
-      content:
-        '# Integração com IA\n\nA integração com IA será um diferencial importante do editor.\n\n## Funcionalidades Planejadas\n\n- Autocompletion contextual\n- Sugestões de refatoração\n- Explicação de código\n- Geração de documentação\n\n## Modelos de IA\n\nPrecisamos avaliar diferentes modelos para cada funcionalidade:\n\n1. Modelos locais para tarefas simples (menor latência)\n2. Modelos em nuvem para tarefas complexas (maior qualidade)',
-      createdAt: '2024-04-03T09:45:00Z',
-      updatedAt: '2024-04-03T16:20:00Z',
-    },
-    {
-      id: '3',
-      title: 'Roadmap de Desenvolvimento',
-      content:
-        '# Roadmap de Desenvolvimento\n\n## Q1 2024\n- MVP do editor com funcionalidades básicas\n- Integração inicial com IA para autocompletion\n\n## Q2 2024\n- Sistema de extensões\n- Colaboração em tempo real\n\n## Q3 2024\n- Integração com GitHub e outros serviços\n- Depuração integrada\n\n## Q4 2024\n- Marketplace de extensões\n- Versão mobile',
-      createdAt: '2024-04-05T11:00:00Z',
-      updatedAt: '2024-04-05T11:00:00Z',
-    },
-    {
-      id: '4',
-      title: 'Ideias para UX',
-      content:
-        '# Ideias para UX\n\n## Princípios de Design\n\n- Minimalista mas poderoso\n- Customizável para diferentes fluxos de trabalho\n- Acessível para todos os usuários\n\n## Inspirações\n\n- VSCode: Para funcionalidades e extensibilidade\n- Notion: Para simplicidade e estética\n- Cursor: Para integração com IA\n\n## Temas\n\n- Tema claro/escuro automático baseado nas preferências do sistema\n- Temas de alta contraste para acessibilidade\n- Temas personalizáveis pelo usuário',
-      createdAt: '2024-04-06T15:30:00Z',
-      updatedAt: '2024-04-07T10:45:00Z',
-    },
-  ]);
+  const [notes, setNotes] = useState<Note[]>([]);
 
   // Carregar notas do localStorage
   useEffect(() => {
-    const savedNotes = localStorage.getItem('notes');
+    if (!projectId) return;
+    const savedNotes = localStorage.getItem(`notes-${projectId}`);
     if (savedNotes) {
       try {
         setNotes(JSON.parse(savedNotes));
@@ -86,7 +56,8 @@ export function NotesPage() {
 
   // Salvar notas no localStorage
   useEffect(() => {
-    localStorage.setItem('notes', JSON.stringify(notes));
+    if (!projectId) return;
+    localStorage.setItem(`notes-${projectId}`, JSON.stringify(notes));
   }, [notes]);
 
   const filteredNotes = notes.filter(note =>

@@ -8,6 +8,7 @@ import { Activity, ArrowUp, Clock, Code, Zap, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+import { useProjectContext } from '@/context/ProjectContext'
 
 // Definir um tipo para o objeto do projeto, baseado na API
 interface Project {
@@ -29,7 +30,7 @@ export function OverviewPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
+  const { projectId, setProjectId } = useProjectContext()
 
   // Função de busca de projetos reutilizável
   const fetchProjects = useCallback(async () => {
@@ -41,8 +42,8 @@ export function OverviewPage() {
       if (response.ok && data.success) {
         const list = data.projects ?? (data.project ? [data.project] : [])
         setProjects(list)
-        if (!selectedProjectId && list.length) {
-          setSelectedProjectId(list[0]._id)
+        if (!projectId && list.length) {
+          setProjectId(list[0]._id)
         }
       } else {
         throw new Error(data.error || data.message || 'Falha ao carregar projetos')
@@ -53,7 +54,7 @@ export function OverviewPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [selectedProjectId])
+  }, [projectId])
 
   useEffect(() => {
     fetchProjects()
@@ -71,18 +72,14 @@ export function OverviewPage() {
 
   // Computed values para o projeto selecionado e métricas
   const currentProject = useMemo(
-    () => projects.find(p => p._id === selectedProjectId) ?? null,
-    [projects, selectedProjectId]
+    () => projects.find(p => p._id === projectId) ?? null,
+    [projects, projectId]
   )
   const progress = useMemo(() => currentProject ? 65 : 0, [currentProject])
   const lastUpdate = useMemo(
     () => currentProject ? new Date(currentProject.updatedAt).toLocaleTimeString() : 'N/A',
     [currentProject]
   )
-
-  const handleProjectSelection = useCallback((id: string) => {
-    setSelectedProjectId(id)
-  }, [])
 
   if (isLoading) {
     return (
@@ -121,7 +118,7 @@ export function OverviewPage() {
     <div className="space-y-6">
       {/* Dropdown estilizado para selecionar qual projeto exibir */}
       <div className="flex items-center mb-4">
-        <Select value={selectedProjectId || ''} onValueChange={handleProjectSelection}>
+        <Select value={projectId || ''} onValueChange={(value) => setProjectId(value)}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Selecione um projeto" />
           </SelectTrigger>
