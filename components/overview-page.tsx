@@ -171,15 +171,17 @@ export function OverviewPage() {
         </Link>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {projects.map((project) => (
-          <Card key={project._id}>
+        {projects
+          .filter(p => p && p._id) // Filtra para garantir que apenas projetos válidos sejam exibidos
+          .map((project) => (
+          <Card key={project._id || `project-${Math.random()}`}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{project.name}</CardTitle>
+              <CardTitle className="text-sm font-medium">{project?.name || 'Sem nome'}</CardTitle>
               <Button onClick={() => handleProjectSelection(project._id)}>Selecionar</Button>
             </CardHeader>
             <CardContent>
               <p className="text-xs text-muted-foreground">
-                {project.description || 'Sem descrição'}
+                {project?.description || 'Sem descrição'}
               </p>
             </CardContent>
           </Card>
